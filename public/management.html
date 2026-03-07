@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Management</title>
+  <link rel="icon" type="image/png" href="https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/2mHlsc.png"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #93C840;
+      --green-dim: rgba(147,200,64,0.08);
+      --green-line: rgba(147,200,64,0.18);
+      --bg: #000;
+      --surface: #0a0a0a;
+      --surface2: #111;
+      --border: #1a1a1a;
+      --border2: #222;
+      --muted: #4a4a4a;
+      --sub: #888;
+      --text: #d0d0d0;
+      --red: #b84040;
+      --red-dim: rgba(184,64,64,0.08);
+      --red-line: rgba(184,64,64,0.2);
+      --amber: #c87820;
+    }
+    html, body { height: 100%; overflow: hidden; }
+    body { display: flex; flex-direction: column; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); font-size: 13px; line-height: 1.5; }
+
+    /* topbar */
+    .topbar {
+      height: 44px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .tb-left { display: flex; align-items: center; gap: 10px; }
+    .tb-left img { height: 20px; }
+    .tb-div { width: 1px; height: 14px; background: var(--border2); }
+    .tb-role { font-size: 0.7rem; font-weight: 600; color: var(--green); }
+    .tb-right { display: flex; align-items: center; gap: 10px; }
+    .tb-user { font-size: 0.78rem; color: var(--sub); }
+    .tb-clock { font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .btn-logout {
+      font-size: 0.72rem; color: var(--muted); background: none;
+      border: 1px solid var(--border2); padding: 3px 9px; border-radius: 3px;
+      cursor: pointer; font-family: inherit;
+      transition: color 0.1s, border-color 0.1s;
+    }
+    .btn-logout:hover { color: var(--red); border-color: var(--red-line); }
+
+    /* layout */
+    .shell { display: flex; flex: 1; overflow: hidden; }
+
+    /* sidebar */
+    .sidebar {
+      width: 200px; flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 8px 0;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 10px; margin: 0 6px; border-radius: 4px;
+      font-size: 0.82rem; color: var(--muted);
+      cursor: pointer; border: none; background: none; width: calc(100% - 12px);
+      text-align: left; font-family: inherit;
+      transition: background 0.1s, color 0.1s;
+    }
+    .nav-item:hover { background: var(--surface2); color: var(--sub); }
+    .nav-item.active { background: var(--green-dim); color: var(--green); }
+    .nav-item svg { width: 14px; height: 14px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* main */
+    .main { flex: 1; overflow-y: auto; padding: 20px; }
+
+    /* page heading */
+    .page-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .page-head-title { font-size: 0.88rem; font-weight: 600; color: var(--text); }
+
+    /* stats strip — compact, not hero */
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .stat {
+      background: var(--surface); padding: 12px 14px;
+    }
+    .stat-n { font-size: 1.3rem; font-weight: 600; line-height: 1; margin-bottom: 3px; }
+    .stat-n.g { color: var(--green); }
+    .stat-n.r { color: var(--red); }
+    .stat-n.a { color: var(--amber); }
+    .stat-n.d { color: var(--sub); }
+    .stat-l { font-size: 0.7rem; color: var(--muted); }
+
+    /* two col */
+    .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+
+    /* panel */
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+    .panel-head { padding: 9px 14px; border-bottom: 1px solid var(--border); }
+    .panel-head-title { font-size: 0.76rem; font-weight: 600; color: var(--sub); }
+    .panel-body { padding: 0 14px; }
+    .panel-body-pad { padding: 12px 14px; }
+
+    /* upload zone */
+    .upload-zone {
+      position: relative; border: 1px dashed var(--border2); border-radius: 4px;
+      padding: 24px 16px; text-align: center; cursor: pointer;
+      transition: border-color 0.1s, background 0.1s;
+    }
+    .upload-zone:hover, .upload-zone.drag { border-color: var(--green); background: var(--green-dim); }
+    .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .upload-zone svg { width: 22px; height: 22px; stroke: var(--muted); fill: none; stroke-width: 1.5; margin-bottom: 6px; display: block; margin-left: auto; margin-right: auto; }
+    .upload-zone:hover svg { stroke: var(--green); }
+    .upload-label { font-size: 0.78rem; color: var(--muted); }
+    .upload-label strong { color: var(--sub); font-weight: 500; }
+
+    /* list items */
+    .list { display: flex; flex-direction: column; }
+    .list-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 0; border-bottom: 1px solid var(--border);
+    }
+    .list-item:last-child { border-bottom: none; }
+    .li-icon {
+      width: 24px; height: 24px; border-radius: 3px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--red-dim);
+    }
+    .li-icon svg { width: 12px; height: 12px; stroke: var(--red); fill: none; stroke-width: 2; }
+    .li-body { flex: 1; min-width: 0; }
+    .li-name { font-size: 0.8rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .li-meta { font-size: 0.68rem; color: var(--muted); margin-top: 1px; }
+    .li-actions { display: flex; gap: 5px; flex-shrink: 0; }
+
+    /* buttons */
+    .btn {
+      font-size: 0.7rem; font-weight: 500; padding: 3px 9px;
+      border-radius: 3px; cursor: pointer; font-family: inherit;
+      border: 1px solid; transition: background 0.1s;
+    }
+    .btn-view { color: var(--green); border-color: var(--green-line); background: var(--green-dim); }
+    .btn-view:hover { background: rgba(147,200,64,0.13); }
+    .btn-del  { color: var(--red); border-color: var(--red-line); background: var(--red-dim); }
+    .btn-del:hover { background: rgba(184,64,64,0.13); }
+    .btn-del-sm { width: 24px; height: 24px; border-radius: 3px; border: 1px solid var(--red-line); background: var(--red-dim); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.1s; }
+    .btn-del-sm:hover { background: rgba(184,64,64,0.13); }
+    .btn-del-sm svg { width: 11px; height: 11px; stroke: var(--red); fill: none; stroke-width: 2; }
+
+    /* response items */
+    .resp-item { padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .resp-item:last-child { border-bottom: none; }
+    .resp-top { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 2px; }
+    .resp-q { flex: 1; font-size: 0.8rem; color: var(--text); line-height: 1.4; }
+    .badge { font-size: 0.66rem; font-weight: 600; padding: 1px 6px; border-radius: 3px; border: 1px solid; flex-shrink: 0; }
+    .badge-yes { color: var(--green); border-color: var(--green-line); background: var(--green-dim); }
+    .badge-no  { color: var(--red); border-color: var(--red-line); background: var(--red-dim); }
+    .resp-meta { font-size: 0.68rem; color: var(--muted); }
+    .resp-reason { font-size: 0.73rem; color: var(--muted); font-style: italic; margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--border); }
+
+    /* Q items */
+    .q-item { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--border); }
+    .q-item:last-child { border-bottom: none; }
+    .q-text { flex: 1; font-size: 0.8rem; color: var(--text); }
+    .q-freq { font-size: 0.68rem; color: var(--muted); white-space: nowrap; }
+
+    /* add form */
+    .add-row { display: flex; gap: 7px; padding-top: 10px; flex-wrap: wrap; }
+    .inp {
+      flex: 1; min-width: 0;
+      background: var(--surface2); border: 1px solid var(--border2); color: var(--text);
+      font-family: inherit; font-size: 0.8rem; padding: 6px 9px; border-radius: 3px; outline: none;
+      transition: border-color 0.1s;
+    }
+    .inp:focus { border-color: var(--green); }
+    .inp::placeholder { color: var(--muted); }
+    select.inp {
+      cursor: pointer; appearance: none; flex: 0 0 128px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23555' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 8px center; background-color: var(--surface2);
+    }
+    select.inp option { background: #0d0d0d; }
+    .btn-add {
+      background: var(--green); color: #000;
+      font-family: inherit; font-weight: 600; font-size: 0.78rem;
+      padding: 6px 12px; border-radius: 3px; border: none;
+      cursor: pointer; white-space: nowrap;
+      transition: opacity 0.1s;
+    }
+    .btn-add:hover { opacity: 0.85; }
+
+    .scroll { max-height: 260px; overflow-y: auto; }
+    .scroll-lg { max-height: 460px; overflow-y: auto; }
+    .empty { font-size: 0.78rem; color: var(--muted); padding: 16px 0; text-align: center; }
+
+    /* modal */
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.82); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.12s; }
+    .overlay.open { opacity: 1; pointer-events: all; }
+    .modal { width: 100%; max-width: 720px; max-height: 86vh; background: var(--surface); border: 1px solid var(--border2); border-radius: 5px; display: flex; flex-direction: column; overflow: hidden; }
+    .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .modal-head-title { font-size: 0.82rem; color: var(--sub); }
+    .modal-close { width: 24px; height: 24px; border: 1px solid var(--border2); background: var(--surface2); border-radius: 3px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .modal-close svg { stroke: var(--muted); width: 11px; height: 11px; fill: none; stroke-width: 2; }
+    .modal-close:hover svg { stroke: var(--text); }
+    .modal iframe { width: 100%; border: none; min-height: 480px; display: block; flex: 1; }
+    .modal-foot { padding: 6px 14px; border-top: 1px solid var(--border); font-size: 0.7rem; color: var(--muted); flex-shrink: 0; }
+
+    ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+  </style>
+</head>
+<body>
+<div class="topbar">
+  <div class="tb-left">
+    <img src="https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/6zYjti.png" alt=""/>
+    <div class="tb-div"></div>
+    <span class="tb-role">Management</span>
+  </div>
+  <div class="tb-right">
+    <span class="tb-user" id="tbUser"></span>
+    <span class="tb-clock" id="tbClock"></span>
+    <button class="btn-logout" onclick="doLogout()">Logout</button>
+  </div>
+</div>
+
+<div class="shell">
+  <nav class="sidebar">
+    <button class="nav-item active" onclick="tab('overview',this)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Overview
+    </button>
+    <button class="nav-item" onclick="tab('documents',this)">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Documents
+    </button>
+    <button class="nav-item" onclick="tab('questions',this)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      QA Questions
+    </button>
+    <button class="nav-item" onclick="tab('responses',this)">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Responses
+    </button>
+  </nav>
+
+  <main class="main">
+
+    <!-- Overview -->
+    <div id="tab-overview">
+      <div class="page-head">
+        <span class="page-head-title">Overview</span>
+      </div>
+      <div class="stats-strip">
+        <div class="stat"><div class="stat-n g" id="s-q">0</div><div class="stat-l">Questions</div></div>
+        <div class="stat"><div class="stat-n a" id="s-r">0</div><div class="stat-l">Responses</div></div>
+        <div class="stat"><div class="stat-n r" id="s-no">0</div><div class="stat-l">No answers</div></div>
+        <div class="stat"><div class="stat-n d" id="s-docs">0</div><div class="stat-l">Documents</div></div>
+      </div>
+      <div class="cols">
+        <div class="panel">
+          <div class="panel-head"><span class="panel-head-title">Recent responses</span></div>
+          <div class="panel-body scroll"><div id="ov-resp" class="list"><div class="empty">No responses yet</div></div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><span class="panel-head-title">Question bank</span></div>
+          <div class="panel-body scroll"><div id="ov-q" class="list"><div class="empty">No questions</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Documents -->
+    <div id="tab-documents" style="display:none;">
+      <div class="page-head"><span class="page-head-title">Documents</span></div>
+      <div class="panel">
+        <div class="panel-body-pad">
+          <div class="upload-zone" id="uploadZone">
+            <input type="file" accept=".pdf" multiple id="fileInput" onchange="uploadFiles(this.files)"/>
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <div class="upload-label"><strong>Click to upload</strong> or drag &amp; drop · PDF only</div>
+          </div>
+          <div id="docList" class="list" style="margin-top:10px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Questions -->
+    <div id="tab-questions" style="display:none;">
+      <div class="page-head"><span class="page-head-title">QA Questions</span></div>
+      <div class="panel">
+        <div class="panel-body-pad">
+          <div id="qList" class="list scroll"><div class="empty">No questions yet.</div></div>
+          <div class="add-row">
+            <input class="inp" id="newQText" placeholder="Question text…" style="flex:2;"/>
+            <select class="inp" id="newQFreq">
+              <option value="Every 30 min">Every 30 min</option>
+              <option value="Every 1 hour" selected>Every 1 hour</option>
+              <option value="Every 2 hours">Every 2 hours</option>
+              <option value="Every shift">Every shift</option>
+              <option value="Once per day">Once per day</option>
+            </select>
+            <button class="btn-add" onclick="addQ()">Add</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Responses -->
+    <div id="tab-responses" style="display:none;">
+      <div class="page-head"><span class="page-head-title">Responses</span></div>
+      <div class="panel">
+        <div class="panel-body">
+          <div id="allResp" class="list scroll-lg"><div class="empty">No responses yet</div></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="overlay" id="modal">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-head-title" id="modalName">Document</span>
+      <button class="modal-close" onclick="closeModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <iframe id="modalFrame" src=""></iframe>
+    <div class="modal-foot">View only — downloading disabled</div>
+  </div>
+</div>
+
+<script src="/api.js"></script>
+<script>
+  const user = API.requireRole(['management']);
+  if (user) document.getElementById('tbUser').textContent = user.displayName;
+  const doLogout = () => { API.clearUser(); location.href='/pre_login.html'; };
+  setInterval(() => document.getElementById('tbClock').textContent = new Date().toLocaleTimeString('hu-HU'), 1000);
+  document.getElementById('tbClock').textContent = new Date().toLocaleTimeString('hu-HU');
+
+  let questions=[], responses=[], docs=[];
+
+  API.subscribe({
+    init:      d => { questions=d.questions; responses=d.responses; docs=d.docs; render(); },
+    questions: d => { questions=d; renderQ(); stats(); },
+    responses: d => { responses=d; renderResp(); stats(); },
+    docs:      d => { docs=d; renderDocs(); stats(); },
+  });
+
+  const esc = s => API.escHtml(s);
+
+  function tab(name, el) {
+    document.querySelectorAll('[id^="tab-"]').forEach(t => t.style.display='none');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('tab-'+name).style.display=''; el.classList.add('active');
+  }
+
+  function render() { stats(); renderQ(); renderResp(); renderDocs(); }
+
+  function stats() {
+    document.getElementById('s-q').textContent    = questions.length;
+    document.getElementById('s-r').textContent    = responses.length;
+    document.getElementById('s-no').textContent   = responses.filter(r=>r.answer==='no').length;
+    document.getElementById('s-docs').textContent = docs.length;
+  }
+
+  function renderQ() {
+    const html = questions.length
+      ? questions.map(q => `
+        <div class="q-item">
+          <div class="q-text">${esc(q.text)}</div>
+          <div class="q-freq">${q.freq}</div>
+          <button class="btn-del-sm" onclick="delQ('${q.id}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+        </div>`).join('')
+      : '<div class="empty">No questions yet.</div>';
+    document.getElementById('qList').innerHTML  = html;
+    document.getElementById('ov-q').innerHTML = questions.length
+      ? questions.map(q=>`<div class="q-item"><div class="q-text">${esc(q.text)}</div><div class="q-freq">${q.freq}</div></div>`).join('')
+      : '<div class="empty">No questions</div>';
+  }
+
+  function respRows(arr) {
+    return arr.length ? arr.slice().reverse().map(r => `
+      <div class="resp-item">
+        <div class="resp-top"><div class="resp-q">${esc(r.question)}</div><span class="badge badge-${r.answer}">${r.answer==='yes'?'Yes':'No'}</span></div>
+        <div class="resp-meta">${esc(r.operatorName||'Operator')} · ${r.time}</div>
+        ${r.reason?`<div class="resp-reason">${esc(r.reason)}</div>`:''}
+      </div>`).join('') : '<div class="empty">No responses yet</div>';
+  }
+
+  function renderResp() {
+    document.getElementById('ov-resp').innerHTML  = respRows(responses.slice(-6));
+    document.getElementById('allResp').innerHTML  = respRows(responses);
+  }
+
+  function renderDocs() {
+    document.getElementById('docList').innerHTML = docs.length ? docs.map(d => `
+      <div class="list-item">
+        <div class="li-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <div class="li-body"><div class="li-name">${esc(d.name)}</div><div class="li-meta">${d.size} · ${d.uploadedAt}</div></div>
+        <div class="li-actions">
+          <button class="btn btn-view" onclick="viewPDF('${d.id}','${esc(d.name)}')">View</button>
+          <button class="btn btn-del" onclick="delDoc('${d.id}')">Delete</button>
+        </div>
+      </div>`).join('') : '';
+  }
+
+  async function uploadFiles(files) {
+    for (const f of Array.from(files)) {
+      if (f.type !== 'application/pdf') continue;
+      const reader = new FileReader();
+      reader.onload = async e => await API.uploadDoc(f.name, API.formatSize(f.size), e.target.result);
+      reader.readAsDataURL(f);
+    }
+  }
+
+  async function addQ() {
+    const text = document.getElementById('newQText').value.trim();
+    const freq = document.getElementById('newQFreq').value;
+    if (!text) return;
+    await API.addQuestion(text, freq);
+    document.getElementById('newQText').value = '';
+  }
+
+  async function delQ(id) { await API.deleteQuestion(id); }
+  async function delDoc(id) { await API.deleteDoc(id); }
+
+  async function viewPDF(id, name) {
+    const d = await API.getDocData(id);
+    document.getElementById('modalName').textContent = name;
+    document.getElementById('modalFrame').src = d.data + '#toolbar=0&navpanes=0';
+    document.getElementById('modal').classList.add('open');
+  }
+  function closeModal() { document.getElementById('modal').classList.remove('open'); document.getElementById('modalFrame').src=''; }
+
+  const zone = document.getElementById('uploadZone');
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+  zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag'); uploadFiles(e.dataTransfer.files); });
+</script>
+</body>
+</html>

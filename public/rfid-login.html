@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RFID Login</title>
+  <link rel="icon" type="image/png" href="https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/2mHlsc.png"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #93C840;
+      --green-dim: rgba(147,200,64,0.1);
+      --green-line: rgba(147,200,64,0.2);
+      --bg: #000;
+      --surface: #0d0d0d;
+      --border: #1e1e1e;
+      --border2: #2a2a2a;
+      --muted: #555;
+      --text: #d8d8d8;
+      --red: #c95050;
+    }
+    body {
+      min-height: 100vh; display: flex;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+    }
+
+    .side-img {
+      width: 42%;
+      background:
+        linear-gradient(rgba(0,0,0,0.52), rgba(20,40,0,0.72)),
+        url('https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/eqL1K5.png') left/cover no-repeat;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 32px;
+    }
+    .side-img img { height: 24px; }
+    .side-img-foot { font-size: 0.78rem; color: rgba(255,255,255,0.4); }
+
+    .side-form {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 40px;
+    }
+
+    .form-wrap { width: 100%; max-width: 320px; }
+    .form-title { font-size: 1.1rem; font-weight: 600; color: var(--text); margin-bottom: 24px; }
+
+    .field { margin-bottom: 20px; }
+    label { display: block; font-size: 0.73rem; font-weight: 500; color: #888; margin-bottom: 5px; }
+    select {
+      width: 100%;
+      background: var(--surface); border: 1px solid var(--border2);
+      color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.85rem;
+      padding: 8px 11px; border-radius: 4px; outline: none;
+      cursor: pointer; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23555' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 10px center;
+      transition: border-color 0.1s;
+    }
+    select:focus { border-color: var(--green); }
+    select option { background: #0d0d0d; }
+
+    /* RFID tap button */
+    .rfid-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 24px 0 20px;
+    }
+    .rfid-btn {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      border: 1px solid var(--border2);
+      background: var(--surface);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      outline: none;
+      transition: border-color 0.1s, background 0.1s;
+    }
+    .rfid-btn:hover { border-color: var(--green); background: var(--green-dim); }
+    .rfid-btn svg { width: 30px; height: 30px; stroke: var(--muted); fill: none; stroke-width: 1.5; stroke-linecap: round; transition: stroke 0.1s; }
+    .rfid-btn:hover svg { stroke: var(--green); }
+    .rfid-btn.scanning { border-color: var(--green); animation: ring 1s ease-in-out infinite; }
+    .rfid-btn.scanning svg { stroke: var(--green); }
+    .rfid-btn.ok { border-color: var(--green); background: var(--green-dim); }
+    .rfid-btn.fail svg { stroke: var(--red); }
+    @keyframes ring {
+      0%,100% { box-shadow: 0 0 0 0 rgba(147,200,64,0.3); }
+      50%      { box-shadow: 0 0 0 8px transparent; }
+    }
+    .rfid-caption { font-size: 0.73rem; color: var(--muted); }
+    .rfid-status  { font-size: 0.78rem; color: var(--muted); min-height: 18px; }
+    .rfid-status.ok  { color: var(--green); }
+    .rfid-status.err { color: var(--red); }
+
+    /* Swipe bar */
+    .swipe-row { margin-bottom: 18px; }
+    .swipe-track {
+      position: relative; height: 44px;
+      background: var(--surface); border: 1px solid var(--border2);
+      border-radius: 22px; overflow: hidden; user-select: none;
+    }
+    .swipe-fill { position: absolute; inset: 0; background: rgba(147,200,64,0.1); width: 0; border-radius: 22px; }
+    .swipe-text {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; color: var(--muted); pointer-events: none;
+      transition: opacity 0.12s;
+    }
+    .swipe-done-text {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 600; color: var(--green);
+      pointer-events: none; opacity: 0; transition: opacity 0.12s;
+    }
+    .swipe-thumb {
+      position: absolute; top: 2px; left: 2px;
+      width: 40px; height: 40px; border-radius: 50%;
+      background: var(--green);
+      display: flex; align-items: center; justify-content: center;
+      cursor: grab; touch-action: none;
+    }
+    .swipe-thumb:active { cursor: grabbing; }
+    .swipe-thumb svg { width: 16px; height: 16px; stroke: #000; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+    .swipe-track.done .swipe-text { opacity: 0; }
+    .swipe-track.done .swipe-done-text { opacity: 1; }
+
+    .sep-row {
+      display: flex; align-items: center; gap: 10px;
+      margin: 4px 0 16px; font-size: 0.7rem; color: #282828;
+    }
+    .sep-row::before, .sep-row::after { content: ''; flex: 1; height: 1px; background: #1a1a1a; }
+
+    .back-row { text-align: center; }
+    .back-row a { font-size: 0.75rem; color: var(--muted); text-decoration: none; }
+    .back-row a:hover { color: var(--text); }
+
+    @media (max-width: 640px) { .side-img { display: none; } .side-form { padding: 32px 20px; } }
+  </style>
+</head>
+<body>
+  <div class="side-img">
+    <img src="https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/6zYjti.png" alt=""/>
+    <div class="side-img-foot">sertecdemo.onrender.com</div>
+  </div>
+
+  <div class="side-form">
+    <div class="form-wrap">
+      <div class="form-title">RFID Login</div>
+
+      <div class="field">
+        <label for="opSel">Operátor (demo)</label>
+        <select id="opSel">
+          <option value="">Válassz operátort…</option>
+          <option value="operator1">Horváth Béla (operator1)</option>
+          <option value="operator2">Varga Zsolt (operator2)</option>
+          <option value="operator3">Kiss Mónika (operator3)</option>
+        </select>
+      </div>
+
+      <div class="rfid-area">
+        <button class="rfid-btn" id="rfidBtn" onclick="scan()">
+          <svg viewBox="0 0 24 24">
+            <rect x="2" y="7" width="14" height="10" rx="2"/>
+            <rect x="5" y="10" width="4" height="4" rx="1"/>
+            <path d="M17 9.5 Q19.5 9.5 19.5 12 Q19.5 14.5 17 14.5"/>
+            <path d="M17 7 Q22 7 22 12 Q22 17 17 17"/>
+          </svg>
+        </button>
+        <div class="rfid-caption">Tap to scan</div>
+        <div class="rfid-status" id="rfidStatus">Ready</div>
+      </div>
+
+      <div class="swipe-row" id="swipeRow" style="opacity:0.25;pointer-events:none;">
+        <div class="swipe-track" id="swipeTrack">
+          <div class="swipe-fill" id="swipeFill"></div>
+          <div class="swipe-text">Swipe to verify →</div>
+          <div class="swipe-done-text">✓ Verified</div>
+          <div class="swipe-thumb" id="swipeThumb">
+            <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="sep-row">or</div>
+      <div class="back-row">
+        <a href="pre_login.html">← Back to login selection</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="/api.js"></script>
+  <script>
+    let rfidOk = false, swipeDone = false, swipeReady = false;
+
+    function scan() {
+      const op = document.getElementById('opSel').value;
+      const st = document.getElementById('rfidStatus');
+      if (!op) { st.className='rfid-status err'; st.textContent='Select an operator first'; return; }
+      if (rfidOk) return;
+      const btn = document.getElementById('rfidBtn');
+      btn.classList.add('scanning'); st.className='rfid-status ok'; st.textContent='Scanning…';
+      setTimeout(() => {
+        btn.classList.remove('scanning'); btn.classList.add('ok');
+        st.textContent = 'Card read — swipe to confirm';
+        rfidOk = true;
+        const row = document.getElementById('swipeRow');
+        row.style.opacity='1'; row.style.pointerEvents='auto';
+        if (!swipeReady) { swipeReady=true; initSwipe(); }
+      }, 1500);
+    }
+
+    function initSwipe() {
+      const track = document.getElementById('swipeTrack');
+      const thumb = document.getElementById('swipeThumb');
+      const fill  = document.getElementById('swipeFill');
+      let dragging=false, startX=0, startL=2;
+      const maxL = () => track.offsetWidth - 42;
+      const onStart = e => {
+        if (swipeDone) return;
+        dragging=true; startX=e.touches?e.touches[0].clientX:e.clientX;
+        startL=parseInt(thumb.style.left||'2',10);
+        thumb.style.transition='none'; fill.style.transition='none';
+        e.preventDefault();
+      };
+      const onMove = e => {
+        if (!dragging||swipeDone) return;
+        const cx=e.touches?e.touches[0].clientX:e.clientX;
+        const nl=Math.min(Math.max(startL+cx-startX,2),maxL());
+        thumb.style.left=nl+'px'; fill.style.width=((nl-2)/(maxL()-2)*100)+'%';
+        e.preventDefault();
+      };
+      const onEnd = async () => {
+        if (!dragging) return; dragging=false;
+        const cur=parseInt(thumb.style.left||'2',10);
+        const pct=(cur-2)/(maxL()-2)*100;
+        if (pct >= 88) {
+          thumb.style.transition='left 0.18s'; thumb.style.left=maxL()+'px';
+          fill.style.transition='width 0.18s'; fill.style.width='100%';
+          track.classList.add('done'); swipeDone=true;
+          document.getElementById('rfidStatus').textContent='Logging in…';
+          try {
+            const u = await API.login(document.getElementById('opSel').value, 'demo123');
+            API.setUser(u);
+            setTimeout(() => { location.href='/operator.html'; }, 400);
+          } catch(e2) {
+            document.getElementById('rfidStatus').className='rfid-status err';
+            document.getElementById('rfidStatus').textContent='Failed: '+e2.message;
+            swipeDone=false; track.classList.remove('done');
+            thumb.style.left='2px'; fill.style.width='0%';
+          }
+        } else {
+          thumb.style.transition='left 0.18s'; thumb.style.left='2px';
+          fill.style.transition='width 0.18s'; fill.style.width='0%';
+        }
+      };
+      thumb.addEventListener('mousedown', onStart, {passive:false});
+      thumb.addEventListener('touchstart', onStart, {passive:false});
+      window.addEventListener('mousemove', onMove, {passive:false});
+      window.addEventListener('touchmove', onMove, {passive:false});
+      window.addEventListener('mouseup', onEnd);
+      window.addEventListener('touchend', onEnd);
+    }
+  </script>
+</body>
+</html>

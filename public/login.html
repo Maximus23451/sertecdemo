@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign in</title>
+  <link rel="icon" type="image/png" href="https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/2mHlsc.png"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #93C840;
+      --green-dim: rgba(147,200,64,0.1);
+      --bg: #000;
+      --surface: #0d0d0d;
+      --border: #1e1e1e;
+      --border2: #2a2a2a;
+      --muted: #555;
+      --text: #d8d8d8;
+      --red: #c95050;
+    }
+    body {
+      min-height: 100vh; display: flex;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+    }
+
+    .side-img {
+      width: 42%;
+      background:
+        linear-gradient(rgba(0,0,0,0.52), rgba(20,40,0,0.72)),
+        url('https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/eqL1K5.png') left/cover no-repeat;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 32px;
+    }
+    .side-img img { height: 24px; }
+    .side-img-foot {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .side-form {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 40px;
+    }
+
+    .form-wrap { width: 100%; max-width: 320px; }
+
+    .form-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 24px;
+    }
+
+    .field { margin-bottom: 14px; }
+    label {
+      display: block;
+      font-size: 0.73rem;
+      font-weight: 500;
+      color: #888;
+      margin-bottom: 5px;
+    }
+    input, select {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      padding: 8px 11px;
+      border-radius: 4px;
+      outline: none;
+      transition: border-color 0.1s;
+    }
+    input::placeholder { color: var(--muted); }
+    input:focus, select:focus { border-color: var(--green); }
+    select {
+      cursor: pointer; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23555' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 10px center;
+    }
+    select option { background: #0d0d0d; }
+
+    .forgot-row { text-align: right; margin-bottom: 16px; }
+    .forgot { font-size: 0.73rem; color: var(--muted); text-decoration: none; }
+    .forgot:hover { color: var(--green); }
+
+    .btn-primary {
+      width: 100%; padding: 9px;
+      background: var(--green); color: #000;
+      font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600;
+      border: none; border-radius: 4px; cursor: pointer;
+      transition: opacity 0.1s;
+    }
+    .btn-primary:hover { opacity: 0.88; }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .err { font-size: 0.75rem; color: var(--red); min-height: 16px; margin-top: 8px; }
+
+    .back-row {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+    .back-row a { font-size: 0.75rem; color: var(--muted); text-decoration: none; }
+    .back-row a:hover { color: var(--text); }
+
+    @media (max-width: 640px) { .side-img { display: none; } .side-form { padding: 32px 20px; } }
+  </style>
+</head>
+<body>
+  <div class="side-img">
+    <img src="https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/6zYjti.png" alt=""/>
+    <div class="side-img-foot">sertecdemo.onrender.com</div>
+  </div>
+
+  <div class="side-form">
+    <div class="form-wrap">
+      <div class="form-title">Sign in</div>
+
+      <div class="field">
+        <label for="role">Role</label>
+        <select id="role">
+          <option value="">Select role…</option>
+          <option value="qa">QA</option>
+          <option value="management">Management</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="username">Username</label>
+        <input type="text" id="username" placeholder="username" autocomplete="username"/>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+
+      <div class="forgot-row">
+        <a href="#" class="forgot">Forgot password?</a>
+      </div>
+
+      <button class="btn-primary" id="btn" onclick="go()">
+        <span id="btnTxt">Sign in</span>
+      </button>
+      <div class="err" id="err"></div>
+
+      <div class="back-row">
+        <a href="pre_login.html">← Back to login selection</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="/api.js"></script>
+  <script>
+    const me = API.getUser();
+    if (me) location.href = me.role === 'qa' ? '/qa.html' : '/management.html';
+
+    async function go() {
+      const role = document.getElementById('role').value;
+      const user = document.getElementById('username').value.trim();
+      const pass = document.getElementById('password').value;
+      const err  = document.getElementById('err');
+      const btn  = document.getElementById('btn');
+      const txt  = document.getElementById('btnTxt');
+      err.textContent = '';
+      if (!user || !pass) { err.textContent = 'Fill in all fields.'; return; }
+      btn.disabled = true; txt.textContent = 'Signing in…';
+      try {
+        const u = await API.login(user, pass);
+        if (role && u.role !== role) {
+          err.textContent = `This account is not a ${role} account.`;
+          btn.disabled = false; txt.textContent = 'Sign in'; return;
+        }
+        if (u.role === 'operator') {
+          err.textContent = 'Use RFID login for operator accounts.';
+          btn.disabled = false; txt.textContent = 'Sign in'; return;
+        }
+        API.setUser(u);
+        location.href = u.role === 'qa' ? '/qa.html' : '/management.html';
+      } catch(e) {
+        err.textContent = e.message || 'Login failed.';
+        btn.disabled = false; txt.textContent = 'Sign in';
+      }
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+  </script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard</title>
+  <link rel="icon" type="image/png" href="https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/2mHlsc.png"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #93C840;
+      --green-dim: rgba(147,200,64,0.1);
+      --green-line: rgba(147,200,64,0.2);
+      --bg: #000;
+      --surface: #0d0d0d;
+      --border: #1e1e1e;
+      --border2: #2a2a2a;
+      --muted: #555;
+      --sub: #888;
+      --text: #d8d8d8;
+    }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'DM Sans', sans-serif;
+      padding: 24px;
+      overflow: hidden;
+      background:
+        linear-gradient(rgba(0,0,0,0.74), rgba(0,0,0,0.84)),
+        url('https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/1UZjPt.jpg') center/cover no-repeat;
+    }
+    canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+
+    .card {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 400px;
+      background: rgba(6,6,6,0.82);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      padding: 0;
+      backdrop-filter: blur(8px);
+    }
+
+    .card-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .card-header img { height: 22px; }
+    .card-header-text { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+
+    .card-body { padding: 16px 20px; }
+
+    .login-methods {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .method {
+      display: block;
+      padding: 12px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 5px;
+      text-decoration: none;
+      transition: border-color 0.1s;
+    }
+    .method:hover { border-color: var(--green); }
+    .method-title { font-size: 0.83rem; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+    .method-sub   { font-size: 0.72rem; color: var(--muted); }
+
+    .demo-panel {
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .demo-head {
+      padding: 6px 12px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--green);
+      background: rgba(147,200,64,0.04);
+      border-bottom: 1px solid var(--border);
+    }
+    .demo-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+    .demo-col {
+      padding: 10px 12px;
+      border-right: 1px solid var(--border);
+    }
+    .demo-col:last-child { border-right: none; }
+    .demo-col-label { font-size: 0.68rem; font-weight: 600; color: var(--muted); margin-bottom: 5px; }
+    .demo-col-users { font-family: monospace; font-size: 0.75rem; color: var(--text); line-height: 1.9; }
+    .demo-foot {
+      padding: 6px 12px;
+      border-top: 1px solid var(--border);
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+    .demo-foot code { color: var(--green); font-family: monospace; }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+
+  <div class="card">
+    <div class="card-header">
+      <img src="https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/6zYjti.png" alt=""/>
+      <span class="card-header-text">Üdv! ツ</span>
+    </div>
+    <div class="card-body">
+      <div class="login-methods">
+        <a href="rfid-login.html" class="method">
+          <div class="method-title">RFID Login</div>
+          <div class="method-sub">Operátor / Gépkezelő</div>
+        </a>
+        <a href="login.html" class="method">
+          <div class="method-title">User &amp; Pass</div>
+          <div class="method-sub">QA / Management</div>
+        </a>
+      </div>
+
+      <div class="demo-panel">
+        <div class="demo-head">Demo bejelentkezési adatok</div>
+        <div class="demo-grid">
+          <div class="demo-col">
+            <div class="demo-col-label">Management</div>
+            <div class="demo-col-users">manager1<br>manager2</div>
+          </div>
+          <div class="demo-col">
+            <div class="demo-col-label">QA</div>
+            <div class="demo-col-users">qa1<br>qa2</div>
+          </div>
+          <div class="demo-col">
+            <div class="demo-col-label">Operátor</div>
+            <div class="demo-col-users">operator1<br>operator2<br>operator3</div>
+          </div>
+        </div>
+        <div class="demo-foot">Minden jelszó: <code>demo123</code></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const c = document.getElementById('c');
+      const ctx = c.getContext('2d');
+      let W, H, P = [];
+      const resize = () => { W = c.width = innerWidth; H = c.height = innerHeight; };
+      const rnd = (a, b) => Math.random() * (b - a) + a;
+      const mkP = () => {
+        const a = rnd(0, Math.PI * 2), s = rnd(0.1, 0.28);
+        return { x: rnd(0,W), y: rnd(0,H), r: rnd(0.6,1.9), vx: Math.cos(a)*s, vy: Math.sin(a)*s, o: rnd(0.1,0.45), p: rnd(0,Math.PI*2), ps: rnd(0.004,0.014) };
+      };
+      const draw = () => {
+        ctx.clearRect(0, 0, W, H);
+        for (const p of P) {
+          p.p += p.ps;
+          ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(147,200,64,${p.o * (0.7 + 0.3 * Math.sin(p.p))})`;
+          ctx.fill();
+          p.x += p.vx; p.y += p.vy;
+          if (p.x < -2) p.x = W + 2; if (p.x > W + 2) p.x = -2;
+          if (p.y < -2) p.y = H + 2; if (p.y > H + 2) p.y = -2;
+        }
+        requestAnimationFrame(draw);
+      };
+      resize(); P = Array.from({ length: 80 }, mkP); draw();
+      window.addEventListener('resize', resize);
+    })();
+  </script>
+</body>
+</html>
