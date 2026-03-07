@@ -16,6 +16,9 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// ─── Root redirect ───────────────────────────────────────────
+app.get('/', (req, res) => res.redirect('/pre_login.html'));
+
 // ─── In-Memory Store ──────────────────────────────────────────
 const store = {
   questions:  [],   // { id, text, freq, createdAt }
