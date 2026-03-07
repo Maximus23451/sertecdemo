@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard - Welcome ツ</title>
+  <link rel="icon" type="image/png" href="https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/2mHlsc.png" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --green:#93C840; --black:#000000; --mid:#555555; --light:#DBDCDD; --white:#ffffff; }
+    body {
+      min-height:100vh; display:flex; justify-content:center; align-items:center;
+      font-family:'DM Sans',sans-serif; overflow:hidden; padding:24px;
+      background: linear-gradient(rgba(0,0,0,0.7),rgba(0,0,0,0.8)),
+                  url('https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/1UZjPt.jpg');
+      background-size:cover; background-position:center;
+    }
+    #particles-canvas { position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none; }
+    .pre-login-card {
+      position:relative; z-index:1; width:100%; max-width:520px; text-align:center;
+      background:rgba(0,0,0,0.4); padding:40px; border-radius:16px;
+      backdrop-filter:blur(5px); animation:fadeUp 0.5s ease both;
+    }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    .logo { width:150px; height:auto; margin-bottom:24px; }
+    .pre-login-card h1 { font-family:'DM Serif Display',serif; font-size:2.4rem; color:var(--white); margin-bottom:12px; }
+    .pre-login-card .subtitle { color:var(--light); font-size:0.95rem; line-height:1.6; margin-bottom:32px; }
+    .options-row { display:flex; gap:16px; justify-content:center; margin-bottom:28px; }
+    .btn-option {
+      flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+      padding:24px 16px; background:#111; border:1px solid #2a2a2a; border-radius:12px;
+      cursor:pointer; text-decoration:none; transition:all 0.2s ease;
+    }
+    .btn-option h3 { font-family:'DM Sans',sans-serif; color:var(--white); font-size:1.1rem; font-weight:600; margin-bottom:6px; transition:color 0.2s; }
+    .btn-option p { color:var(--mid); font-size:0.8rem; }
+    .btn-option:hover { border-color:var(--green); background:rgba(147,200,64,0.05); transform:translateY(-2px); }
+    .btn-option:hover h3 { color:var(--green); }
+    .demo-box {
+      background:rgba(147,200,64,0.06); border:1px solid rgba(147,200,64,0.2);
+      border-radius:10px; padding:16px 20px; text-align:left;
+    }
+    .demo-box-title {
+      font-size:0.7rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase;
+      color:var(--green); margin-bottom:12px; display:flex; align-items:center; gap:6px;
+    }
+    .demo-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+    .demo-role-name { font-weight:600; color:var(--light); margin-bottom:5px; font-size:0.72rem; letter-spacing:0.05em; text-transform:uppercase; }
+    .demo-cred { color:var(--mid); font-size:0.78rem; line-height:1.8; font-family:monospace; }
+    .demo-cred span { color:#888; }
+    .demo-pw { color:var(--mid); font-size:0.72rem; margin-top:12px; text-align:center; border-top:1px solid rgba(147,200,64,0.1); padding-top:10px; }
+    .demo-pw code { color:var(--green); background:rgba(147,200,64,0.1); padding:2px 8px; border-radius:4px; font-size:0.82rem; }
+    @media(max-width:500px) {
+      .options-row { flex-direction:column; }
+      .pre-login-card { padding:24px; }
+      .logo { width:120px; }
+      .pre-login-card h1 { font-size:2rem; }
+      .demo-grid { grid-template-columns:1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles-canvas"></canvas>
+  <div class="pre-login-card">
+    <img src="https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/6zYjti.png" alt="Logo" class="logo"/>
+    <h1>Üdv!ツ</h1>
+    <p class="subtitle">Válaszd ki a bejelentkezési módodat!</p>
+    <div class="options-row">
+      <a href="rfid-login.html" class="btn-option">
+        <h3>RFID Login</h3>
+        <p>Operátor / Gépkezelő</p>
+      </a>
+      <a href="login.html" class="btn-option">
+        <h3>User &amp; Pass</h3>
+        <p>QA / Management</p>
+      </a>
+    </div>
+    <div class="demo-box">
+      <div class="demo-box-title">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Demo bejelentkezési adatok
+      </div>
+      <div class="demo-grid">
+        <div>
+          <div class="demo-role-name">Management</div>
+          <div class="demo-cred"><span>→</span> manager1</div>
+          <div class="demo-cred"><span>→</span> manager2</div>
+        </div>
+        <div>
+          <div class="demo-role-name">QA</div>
+          <div class="demo-cred"><span>→</span> qa1</div>
+          <div class="demo-cred"><span>→</span> qa2</div>
+        </div>
+        <div>
+          <div class="demo-role-name">Operátor</div>
+          <div class="demo-cred"><span>→</span> operator1</div>
+          <div class="demo-cred"><span>→</span> operator2</div>
+          <div class="demo-cred"><span>→</span> operator3</div>
+        </div>
+      </div>
+      <div class="demo-pw">Minden jelszó: <code>demo123</code></div>
+    </div>
+  </div>
+  <script>
+    (() => {
+      const canvas=document.getElementById('particles-canvas'), ctx=canvas.getContext('2d');
+      const N=80,COLOR='147,200,64'; let W,H,P=[];
+      function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}
+      function rnd(a,b){return Math.random()*(b-a)+a;}
+      function mk(){const a=rnd(0,Math.PI*2),s=rnd(0.12,0.35);return{x:rnd(0,W),y:rnd(0,H),r:rnd(0.8,2.2),vx:Math.cos(a)*s,vy:Math.sin(a)*s,o:rnd(0.2,0.55),p:rnd(0,Math.PI*2),ps:rnd(0.005,0.018)};}
+      function draw(){ctx.clearRect(0,0,W,H);for(const p of P){p.p+=p.ps;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`rgba(${COLOR},${p.o*(0.7+0.3*Math.sin(p.p))})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<-p.r)p.x=W+p.r;if(p.x>W+p.r)p.x=-p.r;if(p.y<-p.r)p.y=H+p.r;if(p.y>H+p.r)p.y=-p.r;}requestAnimationFrame(draw);}
+      resize();P=Array.from({length:N},mk);draw();
+      window.addEventListener('resize',resize);
+    })();
+  </script>
+</body>
+</html>
