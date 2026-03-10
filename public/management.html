@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard – Management</title>
+  <link rel="icon" type="image/png" href="https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/2mHlsc.png"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    :root { --green:#93C840; --gdim:rgba(147,200,64,0.12); --black:#000; --s1:#0d0d0d; --s2:#141414; --b1:#1e1e1e; --b2:#2a2a2a; --mid:#555; --light:#DBDCDD; --white:#fff; --red:#e05555; --amber:#f0a500; }
+    body { min-height:100vh; background:var(--black); font-family:'DM Sans',sans-serif; color:var(--white); display:flex; flex-direction:column; overflow:hidden; }
+    .topbar { height:56px; border-bottom:1px solid var(--b1); display:flex; align-items:center; justify-content:space-between; padding:0 24px; background:var(--s1); flex-shrink:0; }
+    .topbar-left { display:flex; align-items:center; gap:16px; }
+    .topbar-left img { height:32px; }
+    .role-badge { background:var(--gdim); border:1px solid rgba(147,200,64,0.3); color:var(--green); font-size:0.7rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; padding:4px 10px; border-radius:20px; }
+    .topbar-right { display:flex; align-items:center; gap:12px; font-size:0.85rem; color:var(--mid); }
+    .user-name { color:var(--light); font-size:0.82rem; }
+    .avatar { width:32px; height:32px; border-radius:50%; background:var(--green); display:flex; align-items:center; justify-content:center; color:var(--black); font-weight:700; font-size:0.8rem; }
+    .btn-logout { background:none; border:1px solid var(--b2); color:var(--mid); font-family:'DM Sans',sans-serif; font-size:0.75rem; padding:5px 10px; border-radius:6px; cursor:pointer; transition:all 0.15s; }
+    .btn-logout:hover { border-color:var(--red); color:var(--red); }
+    .layout { display:flex; flex:1; overflow:hidden; }
+    .sidebar { width:220px; border-right:1px solid var(--b1); background:var(--s1); display:flex; flex-direction:column; padding:20px 0; flex-shrink:0; }
+    .nav-section { padding:0 12px; margin-bottom:8px; }
+    .nav-label { font-size:0.65rem; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:var(--mid); padding:0 8px; margin-bottom:6px; }
+    .nav-item { display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:8px; cursor:pointer; font-size:0.85rem; color:var(--mid); transition:all 0.18s; margin-bottom:2px; }
+    .nav-item:hover { background:var(--s2); color:var(--light); }
+    .nav-item.active { background:var(--gdim); color:var(--green); }
+    .nav-item svg { width:16px; height:16px; flex-shrink:0; fill:none; stroke:currentColor; stroke-width:2; }
+    .main { flex:1; overflow-y:auto; padding:28px; display:flex; flex-direction:column; gap:24px; }
+    .section-title { font-family:'DM Serif Display',serif; font-size:1.6rem; color:var(--white); margin-bottom:4px; }
+    .section-sub { font-size:0.85rem; color:var(--mid); }
+    .stat-row { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+    .stat-card { background:var(--s1); border:1px solid var(--b2); border-radius:12px; padding:20px; display:flex; flex-direction:column; gap:8px; }
+    .stat-label { font-size:0.72rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--mid); }
+    .stat-value { font-family:'DM Serif Display',serif; font-size:2rem; }
+    .stat-value.green{color:var(--green)} .stat-value.red{color:var(--red)} .stat-value.amber{color:var(--amber)} .stat-value.white{color:var(--white)}
+    .stat-trend { font-size:0.78rem; color:var(--mid); }
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+    .card { background:var(--s1); border:1px solid var(--b2); border-radius:12px; padding:24px; }
+    .card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
+    .card-title { font-size:0.85rem; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:var(--light); }
+    .upload-zone { border:2px dashed var(--b2); border-radius:10px; padding:36px; text-align:center; cursor:pointer; transition:all 0.2s; position:relative; }
+    .upload-zone:hover,.upload-zone.drag { border-color:var(--green); background:var(--gdim); }
+    .upload-zone input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; }
+    .upload-icon { width:44px; height:44px; margin:0 auto 14px; stroke:var(--mid); fill:none; stroke-width:1.5; display:block; }
+    .upload-zone:hover .upload-icon { stroke:var(--green); }
+    .upload-text { color:var(--mid); font-size:0.88rem; line-height:1.5; }
+    .upload-text strong { color:var(--light); }
+    .pdf-list { display:flex; flex-direction:column; gap:10px; margin-top:16px; }
+    .pdf-item { display:flex; align-items:center; gap:12px; background:var(--s2); border:1px solid var(--b1); border-radius:8px; padding:12px 14px; }
+    .pdf-icon { width:32px; height:32px; background:rgba(224,85,85,0.1); border-radius:6px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .pdf-icon svg { stroke:var(--red); width:16px; height:16px; fill:none; stroke-width:2; }
+    .pdf-info { flex:1; min-width:0; }
+    .pdf-name { font-size:0.85rem; color:var(--light); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .pdf-meta { font-size:0.72rem; color:var(--mid); margin-top:2px; }
+    .pdf-actions { display:flex; gap:8px; }
+    .btn-sm { padding:5px 12px; border-radius:6px; font-size:0.75rem; font-weight:600; cursor:pointer; border:none; font-family:'DM Sans',sans-serif; transition:all 0.15s; }
+    .btn-view { background:var(--gdim); color:var(--green); border:1px solid rgba(147,200,64,0.3); }
+    .btn-view:hover { background:rgba(147,200,64,0.2); }
+    .btn-del { background:rgba(224,85,85,0.1); color:var(--red); border:1px solid rgba(224,85,85,0.2); }
+    .btn-del:hover { background:rgba(224,85,85,0.18); }
+    .answer-list { display:flex; flex-direction:column; gap:10px; max-height:340px; overflow-y:auto; }
+    .answer-item { background:var(--s2); border:1px solid var(--b1); border-radius:10px; padding:14px; }
+    .answer-top { display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap; }
+    .answer-q { font-size:0.82rem; color:var(--light); flex:1; }
+    .badge { padding:3px 10px; border-radius:20px; font-size:0.68rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; flex-shrink:0; }
+    .badge-yes { background:rgba(147,200,64,0.12); color:var(--green); border:1px solid rgba(147,200,64,0.25); }
+    .badge-no  { background:rgba(224,85,85,0.12);  color:var(--red);   border:1px solid rgba(224,85,85,0.25); }
+    .answer-meta { font-size:0.72rem; color:var(--mid); }
+    .answer-reason { font-size:0.78rem; color:var(--mid); font-style:italic; margin-top:6px; padding-top:6px; border-top:1px solid var(--b1); }
+    .question-list { display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; }
+    .q-item { display:flex; align-items:center; gap:10px; background:var(--s2); border:1px solid var(--b1); border-radius:8px; padding:10px 12px; }
+    .q-text { flex:1; font-size:0.83rem; color:var(--light); }
+    .q-freq { font-size:0.72rem; color:var(--mid); white-space:nowrap; }
+    .btn-icon { width:28px; height:28px; border-radius:6px; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.15s; }
+    .btn-icon.del { background:rgba(224,85,85,0.1); } .btn-icon.del:hover { background:rgba(224,85,85,0.2); }
+    .btn-icon svg { width:14px; height:14px; stroke:var(--red); fill:none; stroke-width:2; }
+    .add-q-form { display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; }
+    .inp { flex:1; min-width:0; background:var(--s2); border:1px solid var(--b2); color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.85rem; padding:10px 14px; border-radius:8px; outline:none; transition:border-color 0.2s; }
+    .inp:focus { border-color:var(--green); }
+    .inp::placeholder { color:var(--mid); }
+    select.inp { cursor:pointer; appearance:none; background-color:var(--s2); }
+    .btn-add { background:var(--green); color:var(--black); font-family:'DM Sans',sans-serif; font-weight:700; font-size:0.82rem; padding:10px 18px; border-radius:8px; border:none; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+    .btn-add:hover { background:#a8dc50; }
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:1000; display:flex; align-items:center; justify-content:center; padding:24px; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+    .modal-overlay.open { opacity:1; pointer-events:all; }
+    .modal { width:100%; max-width:800px; max-height:90vh; background:var(--s1); border:1px solid var(--b2); border-radius:16px; display:flex; flex-direction:column; overflow:hidden; }
+    .modal-header { padding:16px 20px; border-bottom:1px solid var(--b1); display:flex; align-items:center; justify-content:space-between; }
+    .modal-title { font-size:0.9rem; font-weight:600; color:var(--light); }
+    .modal-close { width:30px; height:30px; border-radius:6px; border:none; background:var(--s2); cursor:pointer; display:flex; align-items:center; justify-content:center; }
+    .modal-close svg { stroke:var(--mid); width:16px; height:16px; fill:none; stroke-width:2; }
+    .modal-close:hover svg { stroke:var(--white); }
+    .modal-body iframe { width:100%; border:none; min-height:580px; }
+    .modal-note { padding:10px 20px; background:rgba(240,165,0,0.06); border-top:1px solid rgba(240,165,0,0.15); font-size:0.75rem; color:var(--amber); }
+    .empty-hint { color:var(--mid); font-size:0.85rem; text-align:center; padding:24px; }
+    ::-webkit-scrollbar{width:4px} ::-webkit-scrollbar-track{background:transparent} ::-webkit-scrollbar-thumb{background:var(--b2);border-radius:4px}
+  </style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-left">
+    <img src="https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/6zYjti.png" alt="Logo"/>
+    <span class="role-badge">Management</span>
+  </div>
+  <div class="topbar-right">
+    <span id="clock"></span>
+    <span class="user-name" id="userName"></span>
+    <div class="avatar" id="avatarEl">M</div>
+    <button class="btn-logout" onclick="logout()">Logout</button>
+  </div>
+</div>
+<div class="layout">
+  <div class="sidebar">
+    <div class="nav-section">
+      <div class="nav-label">Overview</div>
+      <div class="nav-item active" onclick="showTab('overview',this)">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard
+      </div>
+      <div class="nav-item" onclick="showTab('documents',this)">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Documents
+      </div>
+      <div class="nav-item" onclick="showTab('questions',this)">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>QA Questions
+      </div>
+      <div class="nav-item" onclick="showTab('responses',this)">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Responses
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <!-- OVERVIEW -->
+    <div id="tab-overview">
+      <div class="section-title">Management Overview</div>
+      <div class="section-sub">Real-time floor status</div>
+      <div class="stat-row" style="margin-top:20px;">
+        <div class="stat-card"><div class="stat-label">QA Questions</div><div class="stat-value green" id="s-q">0</div><div class="stat-trend">in question bank</div></div>
+        <div class="stat-card"><div class="stat-label">Total Responses</div><div class="stat-value amber" id="s-r">0</div><div class="stat-trend">from operators</div></div>
+        <div class="stat-card"><div class="stat-label">No Answers</div><div class="stat-value red" id="s-no">0</div><div class="stat-trend">require attention</div></div>
+        <div class="stat-card"><div class="stat-label">Documents Shared</div><div class="stat-value white" id="s-docs">0</div><div class="stat-trend">visible to all roles</div></div>
+      </div>
+      <div class="two-col" style="margin-top:4px;">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Recent Responses</div></div>
+          <div class="answer-list" id="ov-responses"><div class="empty-hint">No responses yet</div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Active Questions</div></div>
+          <div class="question-list" id="ov-questions"><div class="empty-hint">No questions configured</div></div>
+        </div>
+      </div>
+    </div>
+    <!-- DOCUMENTS -->
+    <div id="tab-documents" style="display:none;">
+      <div class="section-title">Document Management</div>
+      <div class="section-sub">Upload PDFs — visible to QA &amp; Operators (view only, no download)</div>
+      <div class="card" style="margin-top:20px;">
+        <div class="card-header"><div class="card-title">Upload PDF</div></div>
+        <div class="upload-zone" id="uploadZone">
+          <input type="file" accept=".pdf" multiple id="fileInput" onchange="handleFiles(this.files)"/>
+          <svg class="upload-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <div class="upload-text"><strong>Click to upload</strong> or drag &amp; drop<br/>PDF files only</div>
+        </div>
+        <div class="pdf-list" id="pdfList"></div>
+      </div>
+    </div>
+    <!-- QUESTIONS -->
+    <div id="tab-questions" style="display:none;">
+      <div class="section-title">QA Question Manager</div>
+      <div class="section-sub">Configure questions sent periodically to operators</div>
+      <div class="card" style="margin-top:20px;">
+        <div class="card-header"><div class="card-title">Question Bank</div></div>
+        <div class="question-list" id="questionList"><div class="empty-hint" id="q-empty">No questions yet.</div></div>
+        <div class="add-q-form">
+          <input class="inp" id="newQText" placeholder="Enter question text…" style="flex:2;"/>
+          <select class="inp" id="newQFreq" style="flex:0 0 150px;">
+            <option value="Every 30 min">Every 30 min</option>
+            <option value="Every 1 hour" selected>Every 1 hour</option>
+            <option value="Every 2 hours">Every 2 hours</option>
+            <option value="Every shift">Every shift</option>
+            <option value="Once per day">Once per day</option>
+          </select>
+          <button class="btn-add" onclick="addQuestion()">+ Add</button>
+        </div>
+      </div>
+    </div>
+    <!-- RESPONSES -->
+    <div id="tab-responses" style="display:none;">
+      <div class="section-title">Operator Responses</div>
+      <div class="section-sub">All answers from operators</div>
+      <div class="card" style="margin-top:20px;">
+        <div class="answer-list" id="all-responses" style="max-height:600px;"><div class="empty-hint">No responses yet</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PDF Modal -->
+<div class="modal-overlay" id="pdfModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Document</div>
+      <button class="modal-close" onclick="closeModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body"><iframe id="pdfFrame" src=""></iframe></div>
+    <div class="modal-note">⚠ View only — downloading is disabled</div>
+  </div>
+</div>
+
+<script src="/api.js"></script>
+<script>
+  // Auth guard
+  const user = API.requireRole(['management']);
+  if (user) {
+    document.getElementById('userName').textContent = user.displayName;
+    document.getElementById('avatarEl').textContent = user.displayName[0];
+  }
+  function logout() { API.clearUser(); location.href = '/pre_login.html'; }
+
+  // Clock
+  setInterval(() => { document.getElementById('clock').textContent = new Date().toLocaleTimeString('hu-HU'); }, 1000);
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString('hu-HU');
+
+  // State
+  let questions=[], responses=[], docs=[];
+
+  // SSE
+  API.subscribe({
+    init:      d => { questions=d.questions; responses=d.responses; docs=d.docs; render(); },
+    questions: d => { questions=d; render(); },
+    responses: d => { responses=d; render(); },
+    docs:      d => { docs=d; renderDocs(); updateStats(); },
+  });
+
+  function render() { renderStats(); renderQList(); renderResponses(); renderDocs(); }
+
+  // Tabs
+  function showTab(name, el) {
+    document.querySelectorAll('[id^="tab-"]').forEach(t=>t.style.display='none');
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    document.getElementById('tab-'+name).style.display='';
+    el.classList.add('active');
+  }
+
+  function esc(s) { return API.escHtml(s); }
+
+  function renderStats() {
+    document.getElementById('s-q').textContent    = questions.length;
+    document.getElementById('s-r').textContent    = responses.length;
+    document.getElementById('s-no').textContent   = responses.filter(r=>r.answer==='no').length;
+    document.getElementById('s-docs').textContent = docs.length;
+  }
+  function updateStats() { document.getElementById('s-docs').textContent = docs.length; }
+
+  function renderQList() {
+    const el=document.getElementById('questionList'), ov=document.getElementById('ov-questions');
+    if (!questions.length) { el.innerHTML='<div class="empty-hint">No questions yet.</div>'; ov.innerHTML='<div class="empty-hint">No questions configured</div>'; return; }
+    const rows = questions.map(q=>`
+      <div class="q-item">
+        <div class="q-text">${esc(q.text)}</div>
+        <div class="q-freq">${q.freq}</div>
+        <button class="btn-icon del" onclick="delQuestion('${q.id}')">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+        </button>
+      </div>`).join('');
+    el.innerHTML = rows;
+    ov.innerHTML = questions.map(q=>`<div class="q-item"><div class="q-text">${esc(q.text)}</div><div class="q-freq">${q.freq}</div></div>`).join('');
+  }
+
+  function responseHtml(arr) {
+    if (!arr.length) return '<div class="empty-hint">No responses yet</div>';
+    return arr.slice().reverse().map(r=>`
+      <div class="answer-item">
+        <div class="answer-top"><div class="answer-q">${esc(r.question)}</div><span class="badge badge-${r.answer}">${r.answer==='yes'?'✓ Yes':'✗ No'}</span></div>
+        <div class="answer-meta">${esc(r.operatorName||'Operator')} · ${r.time}</div>
+        ${r.reason?`<div class="answer-reason">Reason: ${esc(r.reason)}</div>`:''}
+      </div>`).join('');
+  }
+  function renderResponses() {
+    document.getElementById('ov-responses').innerHTML  = responseHtml(responses.slice(-5));
+    document.getElementById('all-responses').innerHTML = responseHtml(responses);
+    renderStats();
+  }
+
+  function renderDocs() {
+    const list = document.getElementById('pdfList');
+    if (!docs.length) { list.innerHTML=''; return; }
+    list.innerHTML = docs.map(d=>`
+      <div class="pdf-item">
+        <div class="pdf-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <div class="pdf-info"><div class="pdf-name">${esc(d.name)}</div><div class="pdf-meta">${d.size} · ${d.uploadedAt}</div></div>
+        <div class="pdf-actions">
+          <button class="btn-sm btn-view" onclick="viewPDF('${d.id}','${esc(d.name)}')">View</button>
+          <button class="btn-sm btn-del"  onclick="delDoc('${d.id}')">Delete</button>
+        </div>
+      </div>`).join('');
+  }
+
+  // Upload
+  async function handleFiles(files) {
+    for (const file of Array.from(files)) {
+      if (file.type !== 'application/pdf') continue;
+      const reader = new FileReader();
+      reader.onload = async e => {
+        await API.uploadDoc(file.name, API.formatSize(file.size), e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  async function addQuestion() {
+    const text = document.getElementById('newQText').value.trim();
+    const freq = document.getElementById('newQFreq').value;
+    if (!text) return;
+    await API.addQuestion(text, freq);
+    document.getElementById('newQText').value = '';
+  }
+
+  async function delQuestion(id) { await API.deleteQuestion(id); }
+  async function delDoc(id) { await API.deleteDoc(id); }
+
+  async function viewPDF(id, name) {
+    const doc = await API.getDocData(id);
+    document.getElementById('modalTitle').textContent = name;
+    document.getElementById('pdfFrame').src = doc.data + '#toolbar=0&navpanes=0';
+    document.getElementById('pdfModal').classList.add('open');
+  }
+  function closeModal() { document.getElementById('pdfModal').classList.remove('open'); document.getElementById('pdfFrame').src=''; }
+
+  // Drag & drop
+  const zone = document.getElementById('uploadZone');
+  zone.addEventListener('dragover', e=>{ e.preventDefault(); zone.classList.add('drag'); });
+  zone.addEventListener('dragleave', ()=>zone.classList.remove('drag'));
+  zone.addEventListener('drop', e=>{ e.preventDefault(); zone.classList.remove('drag'); handleFiles(e.dataTransfer.files); });
+</script>
+</body>
+</html>
