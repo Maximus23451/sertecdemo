@@ -275,6 +275,7 @@ body {
 .stat-row {
   display: grid;
   gap: 24px;
+  margin-bottom: 32px;
 }
 .stat-card {
   background: var(--surface);
