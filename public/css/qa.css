@@ -46,3 +46,20 @@ body {
   font-size: 0.82rem; color: var(--blue); display: none;
 }
 .pending-active.show { display: block; }
+
+/* More spacing inside the send panel */
+.send-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;                /* increases vertical spacing between elements */
+}
+
+.send-panel .inp,
+.send-panel .btn-send {
+  margin-top: 4px;          /* a little extra above button */
+}
+
+.pending-active,
+.sent-flash {
+  margin: 4px 0 0 0;        /* ensure some air around notifications */
+}
