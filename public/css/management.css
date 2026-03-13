@@ -1,0 +1,3 @@
+/* management.css */
+body { min-height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+.stat-row { grid-template-columns: repeat(4, 1fr); }
