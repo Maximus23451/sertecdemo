@@ -113,10 +113,11 @@ body {
 [data-theme="dark"] .icon-moon { display: none; }
 
 /* ── Logo theme switching ─────────────────────────────────── */
-.logo-light { display: block; }
-.logo-dark  { display: none;  }
-[data-theme="dark"] .logo-light { display: none;  }
-[data-theme="dark"] .logo-dark  { display: block; }
+/* Only one logo visible at a time — hidden with display:none */
+.logo-light { display: inline-block; }
+.logo-dark  { display: none; }
+[data-theme="dark"] .logo-light { display: none; }
+[data-theme="dark"] .logo-dark  { display: inline-block; }
 
 /* ── Topbar ───────────────────────────────────────────────── */
 .topbar {
@@ -231,7 +232,7 @@ body {
 }
 
 /* ── Section headers ─────────────────────────────────────── */
-.section-header { display: flex; flex-direction: column; gap: 2px; margin-bottom: 2px; }
+.section-header { display: flex; flex-direction: column; gap: 3px; margin-bottom: 12px; }
 .section-title {
   font-family: 'Playfair Display', 'DM Serif Display', serif;
   font-size: 1.55rem; font-weight: 500; color: var(--text); line-height: 1.2;
