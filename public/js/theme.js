@@ -1,27 +1,30 @@
-// theme.js — shared light/dark mode logic
-// Light mode is the default. Call initTheme() on every page.
+// theme.js – reliable light/dark theme toggling with localStorage
+(function() {
+  const THEME_KEY = 'dashboard_theme';
 
-const THEME_KEY = 'dashboard_theme';
-
-function initTheme() {
-  // Default is light; only switch to dark if stored preference exists
-  const stored = localStorage.getItem(THEME_KEY);
-  if (stored === 'dark') {
-    document.documentElement.setAttribute('data-theme', 'dark');
+  function setTheme(theme) {
+    if (theme === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+    localStorage.setItem(THEME_KEY, theme);
   }
-  // else: light mode (default, no attribute needed)
-}
 
-function toggleTheme() {
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  if (isDark) {
-    document.documentElement.removeAttribute('data-theme');
-    localStorage.setItem(THEME_KEY, 'light');
-  } else {
-    document.documentElement.setAttribute('data-theme', 'dark');
-    localStorage.setItem(THEME_KEY, 'dark');
+  function initTheme() {
+    const stored = localStorage.getItem(THEME_KEY);
+    // Default to light if no stored preference
+    setTheme(stored === 'dark' ? 'dark' : 'light');
   }
-}
 
-// Run immediately (before render to avoid flash)
-initTheme();
+  window.toggleTheme = function() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    setTheme(isDark ? 'light' : 'dark');
+  };
+
+  // Initialize immediately (before page paints)
+  initTheme();
+
+  // Optional: log current theme for debugging (remove in production)
+  console.log('Theme initialized:', document.documentElement.getAttribute('data-theme') || 'light');
+})();
