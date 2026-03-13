@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Dashboard – Operátor</title>
+  <link rel="icon" type="image/png" href="https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/2mHlsc.png"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/css/shared.css"/>
+  <link rel="stylesheet" href="/css/operator.css"/>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-left">
+    <img src="https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/6zYjti.png" alt="Logo"/>
+    <span class="role-badge">Operátor</span>
+  </div>
+  <div class="topbar-right">
+    <div>
+      <div class="topbar-time" id="clock"></div>
+      <div class="topbar-date" id="dateStr"></div>
+    </div>
+    <span class="user-name" id="userName"></span>
+    <div class="avatar" id="avatarEl">O</div>
+    <button class="btn-logout" onclick="logout()">Kilépés</button>
+  </div>
+</div>
+
+<div class="content">
+  <!-- QA Tab -->
+  <div id="tab-qa" class="tab-view active">
+    <div class="section-hdr">
+      <div><div class="section-title">QA Kérdés</div><div class="section-sub">Válaszolj a minőségbiztosítási kérdésre</div></div>
+    </div>
+    <div class="question-card" id="noQuestion">
+      <div class="no-question">
+        <div class="no-q-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+        <div class="no-q-title">Nincs aktív kérdés</div>
+        <div class="no-q-sub">Várd meg, amíg a QA küld egyet</div>
+      </div>
+    </div>
+    <div class="question-card has-question" id="activeQuestion" style="display:none;">
+      <div class="q-badge"><span class="dot"></span> Új kérdés érkezett</div>
+      <div class="q-text" id="qText">—</div>
+      <div class="q-sent-at" id="qSentAt"></div>
+      <div id="answerSection">
+        <div class="answer-btns">
+          <button class="btn-answer btn-yes" onclick="answerYes()"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Igen</button>
+          <button class="btn-answer btn-no"  onclick="answerNo()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Nem</button>
+        </div>
+        <div class="reason-box" id="reasonBox">
+          <div class="reason-label">⚠ Miért nem? (kötelező)</div>
+          <textarea class="reason-textarea" id="reasonText" placeholder="Írd le az okot…" rows="4"></textarea>
+          <button class="btn-submit" onclick="submitNo()">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Elküld
+          </button>
+        </div>
+      </div>
+      <div class="answered-state" id="answeredState">
+        <div class="answered-icon" id="answeredIcon">
+          <svg id="answeredSvg" viewBox="0 0 24 24" stroke="currentColor"></svg>
+        </div>
+        <div class="answered-title" id="answeredTitle"></div>
+        <div class="answered-sub" id="answeredSub"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- History Tab -->
+  <div id="tab-history" class="tab-view">
+    <div class="section-hdr"><div><div class="section-title">Előzmények</div><div class="section-sub">Korábbi válaszaid</div></div></div>
+    <div class="history-list" id="historyList"><div class="empty-state">Még nincs válasz</div></div>
+  </div>
+
+  <!-- Docs Tab -->
+  <div id="tab-docs" class="tab-view">
+    <div class="section-hdr"><div><div class="section-title">Dokumentumok</div><div class="section-sub">Megtekinthető — letöltés nem engedélyezett</div></div></div>
+    <div id="docList"><div class="empty-state">Nincs elérhető dokumentum</div></div>
+  </div>
+</div>
+
+<div class="bottom-nav">
+  <button class="nav-tab active" id="nav-qa" onclick="switchTab('qa',this)">
+    <div class="notif-dot" id="qaDot"></div>
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    QA Kérdés
+  </button>
+  <button class="nav-tab" id="nav-history" onclick="switchTab('history',this)">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Előzmények
+  </button>
+  <button class="nav-tab" id="nav-docs" onclick="switchTab('docs',this)">
+    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    Dokumentumok
+  </button>
+</div>
+
+<!-- PDF Modal -->
+<div class="modal-overlay" id="pdfModal">
+  <div class="modal-header">
+    <div class="modal-title" id="modalTitle">Dokumentum</div>
+    <button class="modal-close" onclick="closeModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="modal-body"><iframe id="pdfFrame" src=""></iframe></div>
+  <div class="modal-note">⚠ Csak megtekintés — letöltés nem engedélyezett</div>
+</div>
+
+<script src="/api.js"></script>
+<script src="/js/operator.js"></script>
+</body>
+</html>

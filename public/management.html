@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard – Management</title>
+  <link rel="icon" type="image/png" href="https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/2mHlsc.png"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/css/shared.css"/>
+  <link rel="stylesheet" href="/css/management.css"/>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-left">
+    <img src="https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/6zYjti.png" alt="Logo"/>
+    <span class="role-badge">Management</span>
+  </div>
+  <div class="topbar-right">
+    <span id="clock"></span>
+    <span class="user-name" id="userName"></span>
+    <div class="avatar" id="avatarEl">M</div>
+    <button class="btn-logout" onclick="logout()">Logout</button>
+  </div>
+</div>
+<div class="layout">
+  <div class="sidebar">
+    <div class="nav-section">
+      <div class="nav-label">Overview</div>
+      <div class="nav-item active" onclick="showTab('overview',this)">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard
+      </div>
+      <div class="nav-item" onclick="showTab('documents',this)">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Documents
+      </div>
+      <div class="nav-item" onclick="showTab('questions',this)">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>QA Questions
+      </div>
+      <div class="nav-item" onclick="showTab('responses',this)">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Responses
+      </div>
+    </div>
+  </div>
+  <div class="main">
+
+    <!-- OVERVIEW -->
+    <div id="tab-overview">
+      <div class="section-title">Management Overview</div>
+      <div class="section-sub">Real-time floor status</div>
+      <div class="stat-row" style="margin-top:20px;">
+        <div class="stat-card"><div class="stat-label">QA Questions</div><div class="stat-value green" id="s-q">0</div><div class="stat-trend">in question bank</div></div>
+        <div class="stat-card"><div class="stat-label">Total Responses</div><div class="stat-value amber" id="s-r">0</div><div class="stat-trend">from operators</div></div>
+        <div class="stat-card"><div class="stat-label">No Answers</div><div class="stat-value red" id="s-no">0</div><div class="stat-trend">require attention</div></div>
+        <div class="stat-card"><div class="stat-label">Documents Shared</div><div class="stat-value white" id="s-docs">0</div><div class="stat-trend">visible to all roles</div></div>
+      </div>
+      <div class="two-col" style="margin-top:4px;">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Recent Responses</div></div>
+          <div class="answer-list" id="ov-responses"><div class="empty-hint">No responses yet</div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Active Questions</div></div>
+          <div class="question-list" id="ov-questions"><div class="empty-hint">No questions configured</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DOCUMENTS -->
+    <div id="tab-documents" style="display:none;">
+      <div class="section-title">Document Management</div>
+      <div class="section-sub">Upload PDFs — visible to QA &amp; Operators (view only, no download)</div>
+      <div class="card" style="margin-top:20px;">
+        <div class="card-header"><div class="card-title">Upload PDF</div></div>
+        <div class="upload-zone" id="uploadZone">
+          <input type="file" accept=".pdf" multiple id="fileInput" onchange="handleFiles(this.files)"/>
+          <svg class="upload-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <div class="upload-text"><strong>Click to upload</strong> or drag &amp; drop<br/>PDF files only</div>
+        </div>
+        <div class="pdf-list" id="pdfList"></div>
+      </div>
+    </div>
+
+    <!-- QUESTIONS -->
+    <div id="tab-questions" style="display:none;">
+      <div class="section-title">QA Question Manager</div>
+      <div class="section-sub">Configure questions sent periodically to operators</div>
+      <div class="card" style="margin-top:20px;">
+        <div class="card-header"><div class="card-title">Question Bank</div></div>
+        <div class="question-list" id="questionList"><div class="empty-hint" id="q-empty">No questions yet.</div></div>
+        <div class="add-q-form">
+          <input class="inp" id="newQText" placeholder="Enter question text…" style="flex:2;"/>
+          <select class="inp" id="newQFreq" style="flex:0 0 150px;">
+            <option value="Every 30 min">Every 30 min</option>
+            <option value="Every 1 hour" selected>Every 1 hour</option>
+            <option value="Every 2 hours">Every 2 hours</option>
+            <option value="Every shift">Every shift</option>
+            <option value="Once per day">Once per day</option>
+          </select>
+          <button class="btn-add" onclick="addQuestion()">+ Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESPONSES -->
+    <div id="tab-responses" style="display:none;">
+      <div class="section-title">Operator Responses</div>
+      <div class="section-sub">All answers from operators</div>
+      <div class="card" style="margin-top:20px;">
+        <div class="answer-list" id="all-responses" style="max-height:600px;"><div class="empty-hint">No responses yet</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- PDF Modal -->
+<div class="modal-overlay" id="pdfModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Document</div>
+      <button class="modal-close" onclick="closeModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body"><iframe id="pdfFrame" src=""></iframe></div>
+    <div class="modal-note">⚠ View only — downloading is disabled</div>
+  </div>
+</div>
+
+<script src="/api.js"></script>
+<script src="/js/management.js"></script>
+</body>
+</html>

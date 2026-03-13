@@ -1,0 +1,31 @@
+/* qa.css */
+body { min-height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+.role-badge { background: var(--bdim); border: 1px solid rgba(74,158,255,0.3); color: var(--blue); }
+.avatar { background: var(--blue); color: var(--white); }
+.nav-item.active { background: var(--bdim); color: var(--blue); }
+
+.stat-row { grid-template-columns: repeat(3, 1fr); }
+
+.send-panel { display: flex; flex-direction: column; gap: 12px; }
+.send-label { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--light); margin-bottom: 4px; }
+
+select.inp:focus { border-color: var(--blue); }
+
+.btn-send {
+  background: var(--blue); color: var(--white); font-family: 'DM Sans', sans-serif;
+  font-weight: 700; font-size: 0.9rem; padding: 12px 24px; border-radius: 8px;
+  border: none; cursor: pointer; transition: all 0.15s; width: 100%;
+}
+.btn-send:hover { background: #5ba8ff; transform: translateY(-1px); }
+.btn-send:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+.sent-flash { background: rgba(147,200,64,0.1); border: 1px solid rgba(147,200,64,0.25); border-radius: 8px; padding: 12px; text-align: center; font-size: 0.85rem; color: var(--green); display: none; }
+.pending-active { background: rgba(74,158,255,0.08); border: 1px solid rgba(74,158,255,0.25); border-radius: 8px; padding: 12px; font-size: 0.82rem; color: var(--blue); display: none; }
+.pending-active.show { display: block; }
+
+.answer-list { max-height: 380px; }
+.pdf-item { margin-bottom: 10px; }
+
+.btn-view { background: rgba(147,200,64,0.12); color: var(--green); border: 1px solid rgba(147,200,64,0.3); }
+.btn-view:hover { background: rgba(147,200,64,0.2); }

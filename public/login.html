@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard - Login</title>
+  <link rel="icon" type="image/png" href="https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/2mHlsc.png"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/css/shared.css"/>
+  <link rel="stylesheet" href="/css/login.css"/>
+</head>
+<body>
+  <div class="panel-left">
+    <div class="brand">
+      <img src="https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/6zYjti.png" alt="Logo" style="width:120px;height:auto;"/>
+    </div>
+    <div class="panel-tagline">
+      <h2>Welcome back to your workspace.</h2>
+    </div>
+  </div>
+
+  <div class="panel-right">
+    <div class="login-card">
+      <h1>Sign in</h1>
+      <p class="subtitle">Enter your credentials to continue</p>
+
+      <div class="field">
+        <label for="username">Username</label>
+        <input type="text" id="username" placeholder="username" autocomplete="username"/>
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="••••••••ツ" autocomplete="current-password"/>
+      </div>
+
+      <div class="row">
+        <a href="#" class="forgot">Forgot password?</a>
+      </div>
+
+      <button class="btn-gradient-slide" id="loginBtn" onclick="handleLogin()">
+        <span id="btnText">Sign In</span>
+      </button>
+      <div class="error-msg" id="errorMsg"></div>
+
+      <div class="divider">or</div>
+      <a href="pre_login.html" class="back-link">Go back to <span>login selection</span></a>
+    </div>
+  </div>
+
+  <script src="/api.js"></script>
+  <script src="/js/login.js"></script>
+</body>
+</html>

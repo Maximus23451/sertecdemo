@@ -1,0 +1,8 @@
+/* management.css */
+body { min-height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+.role-badge { background: var(--gdim); border: 1px solid rgba(147,200,64,0.3); color: var(--green); }
+.avatar { background: var(--green); color: var(--black); }
+.nav-item.active { background: var(--gdim); color: var(--green); }
+
+.stat-row { grid-template-columns: repeat(4, 1fr); }
