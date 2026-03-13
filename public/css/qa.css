@@ -63,3 +63,22 @@ body {
 .sent-flash {
   margin: 4px 0 0 0;        /* ensure some air around notifications */
 }
+
+/* Ensure the add form stays horizontal */
+.add-q-form {
+  display: flex;
+  flex-wrap: nowrap;      /* prevent wrapping on small screens */
+  gap: 10px;
+  margin-top: 16px;
+}
+.add-q-form .inp {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.add-q-form select.inp {
+  flex: 0 0 140px;        /* fixed width for frequency dropdown */
+}
+.add-q-form .btn-add {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
