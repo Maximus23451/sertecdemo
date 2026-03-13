@@ -72,11 +72,6 @@
         <div class="section-sub">Real-time floor status and activity</div>
       </div>
       <div class="stat-row">
-        <div class="stat-card green">
-          <div class="stat-label">QA Questions</div>
-          <div class="stat-value green" id="s-q">0</div>
-          <div class="stat-trend">in question bank</div>
-        </div>
         <div class="stat-card amber">
           <div class="stat-label">Total Responses</div>
           <div class="stat-value amber" id="s-r">0</div>
@@ -119,29 +114,6 @@
           <div class="upload-text"><strong>Click to upload</strong> or drag &amp; drop<br/>PDF files only</div>
         </div>
         <div class="pdf-list" id="pdfList"></div>
-      </div>
-    </div>
-
-    <!-- QUESTIONS TAB -->
-    <div id="tab-questions" style="display:none;">
-      <div class="section-header">
-        <div class="section-title">QA Question Manager</div>
-        <div class="section-sub">Configure questions sent periodically to operators</div>
-      </div>
-      <div class="card">
-        <div class="card-header"><div class="card-title">Question Bank</div></div>
-        <div class="question-list" id="questionList"><div class="empty-hint">No questions yet.</div></div>
-        <div class="add-q-form">
-          <input class="inp" id="newQText" placeholder="Enter question text…" style="flex:2;"/>
-          <select class="inp" id="newQFreq" style="flex:0 0 148px;">
-            <option value="Every 30 min">Every 30 min</option>
-            <option value="Every 1 hour" selected>Every 1 hour</option>
-            <option value="Every 2 hours">Every 2 hours</option>
-            <option value="Every shift">Every shift</option>
-            <option value="Once per day">Once per day</option>
-          </select>
-          <button class="btn-add" onclick="addQuestion()">+ Add</button>
-        </div>
       </div>
     </div>
 
