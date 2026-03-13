@@ -87,10 +87,7 @@ function renderQuestionList(containerId, withDelete = true) {
 
 window.deleteQuestionHandler = function(index) {
   if (deleteQuestion(index)) {
-    // Refresh any visible question lists
     if (document.getElementById('questionList')) renderQuestionList('questionList', true);
-    if (document.getElementById('questionListManage')) renderQuestionList('questionListManage', true);
-    // Also update QA dropdown
     if (typeof populateQuestionSelect === 'function') populateQuestionSelect('questionSelect');
   }
 };
