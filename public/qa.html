@@ -158,18 +158,24 @@
   </div>
 </div>
 
-  <!-- MANAGE QUESTIONS TAB (moved from management) -->
+<!-- MANAGE QUESTIONS TAB -->
 <div id="tab-manage-questions" style="display:none;">
   <div class="section-header">
     <div class="section-title">QA Question Manager</div>
     <div class="section-sub">Configure questions sent periodically to operators</div>
   </div>
   <div class="card">
-    <div class="card-header"><div class="card-title">Question Bank</div></div>
-    <div class="question-list" id="questionList"><div class="empty-hint">No questions yet.</div></div>
+    <div class="card-header">
+      <div class="card-title">Question Bank</div>
+    </div>
+    <!-- Question list container – separate from form -->
+    <div class="question-list" id="questionList">
+      <div class="empty-hint">No questions yet.</div>
+    </div>
+    <!-- Add form – clearly outside the list -->
     <div class="add-q-form">
-      <input class="inp" id="newQText" placeholder="Enter question text…" style="flex:2;"/>
-      <select class="inp" id="newQFreq" style="flex:0 0 148px;">
+      <input class="inp" id="newQText" placeholder="Enter question text…" />
+      <select class="inp" id="newQFreq">
         <option value="Every 30 min">Every 30 min</option>
         <option value="Every 1 hour" selected>Every 1 hour</option>
         <option value="Every 2 hours">Every 2 hours</option>
