@@ -136,7 +136,7 @@ function renderDocs() {
 async function viewPDF(id, name) {
   const doc = await API.getDocData(id);
   document.getElementById('modalTitle').textContent = name;
-  document.getElementById('pdfFrame').src = doc.data + '#toolbar=0&navpanes=0';
+  document.getElementById('pdfFrame').src = doc.data + '#toolbar=0&navpanes=0&zoom=page-width';
   document.getElementById('pdfModal').classList.add('open');
 }
 function closeModal() {
