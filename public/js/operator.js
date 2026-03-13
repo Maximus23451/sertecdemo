@@ -1,145 +1,228 @@
-// operator.js
-const user = API.requireRole(['operator']);
-if (user) {
-  document.getElementById('userName').textContent = user.displayName;
-  document.getElementById('avatarEl').textContent = user.displayName[0];
-}
-function logout() { API.clearUser(); location.href = '/pre_login.html'; }
-
-function tick() {
-  const n = new Date();
-  document.getElementById('clock').textContent   = n.toLocaleTimeString('hu-HU');
-  document.getElementById('dateStr').textContent = n.toLocaleDateString('hu-HU', { weekday: 'long', month: 'long', day: 'numeric' });
-}
-setInterval(tick, 1000); tick();
-
-let pendingQ = null, answeredPendingId = null, myResponses = [], docs = [];
-
-try { myResponses = JSON.parse(sessionStorage.getItem('op_my_responses') || '[]'); } catch {}
-try { answeredPendingId = sessionStorage.getItem('op_answered_id') || null; } catch {}
-
-API.subscribe({
-  init:    d => { pendingQ = d.pending; docs = d.docs; checkQuestion(); renderHistory(); renderDocs(); },
-  pending: d => { pendingQ = d; checkQuestion(); },
-  docs:    d => { docs = d; renderDocs(); },
-});
-
-function switchTab(n, btn) {
-  document.querySelectorAll('.tab-view').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-' + n).classList.add('active');
-  btn.classList.add('active');
-  if (n === 'history') renderHistory();
-  if (n === 'docs') renderDocs();
-  if (n === 'qa') document.getElementById('nav-qa').classList.remove('has-notif');
+/* operator.css */
+:root { --touch: 52px; }
+html { font-size: 16px; height: 100%; }
+body {
+  height: 100vh;
+  display: flex; flex-direction: column;
+  overflow: hidden; touch-action: manipulation;
 }
 
-function checkQuestion() {
-  const navBtn = document.getElementById('nav-qa');
-  if (pendingQ && pendingQ.id !== answeredPendingId) {
-    document.getElementById('noQuestion').style.display     = 'none';
-    document.getElementById('activeQuestion').style.display = 'block';
-    document.getElementById('qText').textContent            = pendingQ.text;
-    document.getElementById('qSentAt').textContent          = 'Elküldve: ' + pendingQ.sentAt;
-    document.getElementById('answerSection').style.display  = '';
-    document.getElementById('answeredState').classList.remove('show');
-    document.getElementById('reasonBox').classList.remove('open');
-    document.getElementById('reasonText').value = '';
-    if (!document.getElementById('tab-qa').classList.contains('active')) navBtn.classList.add('has-notif');
-  } else if (!pendingQ) {
-    document.getElementById('noQuestion').style.display     = '';
-    document.getElementById('activeQuestion').style.display = 'none';
-    navBtn.classList.remove('has-notif');
-  }
+/* Override topbar sizing for operator (slightly taller for time display) */
+.topbar { height: 60px; min-height: 60px; padding: 0 18px; }
+.topbar-left img { height: 22px; }
+.topbar-time {
+  font-family: 'Playfair Display', 'DM Serif Display', serif;
+  font-size: 1.2rem; color: var(--text); line-height: 1;
+}
+.topbar-date { font-size: 0.68rem; color: var(--text-3); margin-top: 2px; }
+.avatar { width: 26px; height: 26px; font-size: 0.68rem; }
+
+/* Scrollable content area between topbar and bottom nav */
+.content {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 24px 20px;
+  -webkit-overflow-scrolling: touch;
+}
+.tab-view { display: none; flex-direction: column; gap: 20px; }
+.tab-view.active { display: flex; }
+.section-hdr { display: flex; align-items: flex-start; justify-content: space-between; }
+.section-title { font-size: 1.5rem !important; }
+.section-sub { font-size: 0.8rem; color: var(--text-3); margin-top: 2px; }
+
+/* Bottom navigation */
+.bottom-nav {
+  height: 64px; min-height: 64px;
+  border-top: 1px solid var(--border);
+  background: var(--topbar-bg);
+  display: flex; flex-shrink: 0;
+  transition: background 0.25s, border-color 0.25s;
+}
+.nav-tab {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 3px;
+  cursor: pointer; border: none; background: none;
+  color: var(--text-3); font-family: inherit;
+  font-size: 0.63rem; font-weight: 700; letter-spacing: 0.07em;
+  text-transform: uppercase; transition: all 0.18s; position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-tab svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.nav-tab.active { color: var(--accent); }
+.notif-dot {
+  position: absolute; top: 7px; right: calc(50% - 18px);
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--red); border: 2px solid var(--topbar-bg); display: none;
+}
+.nav-tab.has-notif .notif-dot { display: block; animation: notif-pop 0.4s ease; }
+@keyframes notif-pop { 0%{transform:scale(0)} 70%{transform:scale(1.3)} 100%{transform:scale(1)} }
+
+/* ── Question card ────────────────────────────────────────── */
+.question-card {
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 16px; padding: 22px 20px;
+  box-shadow: var(--shadow-sm);
+  animation: fadeUp 0.3s ease both;
+  transition: background 0.25s, border-color 0.25s;
+}
+.question-card.has-question { border-color: var(--accent-mid); }
+@keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+.q-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--accent-dim); border: 1px solid var(--accent-mid);
+  color: var(--accent); font-size: 0.66rem; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 99px; margin-bottom: 14px;
+}
+.q-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--accent); animation: blink 1.5s ease-in-out infinite; flex-shrink: 0;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.q-text {
+  font-family: 'Playfair Display', 'DM Serif Display', serif;
+  font-size: 1.6rem; font-weight: 500; color: var(--text);
+  line-height: 1.3; margin-bottom: 6px;
+}
+.q-sent-at { font-size: 0.76rem; color: var(--text-3); margin-bottom: 20px; }
+
+/* Answer buttons */
+.answer-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btn-answer {
+  min-height: var(--touch); border-radius: 12px; border: 1.5px solid transparent;
+  cursor: pointer; font-family: inherit; font-size: 1.05rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all 0.18s; -webkit-tap-highlight-color: transparent; user-select: none;
+}
+.btn-yes { background: var(--accent-dim); border-color: var(--accent-mid); color: var(--accent); }
+.btn-yes:hover, .btn-yes:active { background: rgba(122,181,48,0.2); border-color: var(--accent); transform: scale(0.97); }
+.btn-no  { background: var(--red-dim);   border-color: rgba(201,69,69,0.2); color: var(--red); }
+.btn-no:hover, .btn-no:active   { background: rgba(201,69,69,0.18); border-color: var(--red); transform: scale(0.97); }
+.btn-answer svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; flex-shrink: 0; }
+
+/* Reason textarea */
+.reason-box { margin-top: 14px; display: none; animation: fadeUp 0.2s ease both; }
+.reason-box.open { display: block; }
+.reason-label {
+  font-size: 0.69rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--red); margin-bottom: 7px; display: block;
+}
+.reason-textarea {
+  width: 100%; min-height: 88px;
+  background: var(--surface-2); border: 1.5px solid rgba(201,69,69,0.25);
+  border-radius: 10px; color: var(--text); font-family: inherit;
+  font-size: 0.95rem; padding: 11px 13px; resize: vertical; outline: none;
+  transition: border-color 0.16s;
+}
+.reason-textarea:focus { border-color: var(--red); }
+.reason-textarea::placeholder { color: var(--text-3); }
+.btn-submit {
+  width: 100%; min-height: var(--touch); margin-top: 10px;
+  background: var(--red); color: #fff; font-family: inherit;
+  font-size: 0.95rem; font-weight: 700; border: none;
+  border-radius: 11px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  transition: all 0.18s;
+}
+.btn-submit:hover { background: #D45050; box-shadow: 0 4px 14px rgba(201,69,69,0.3); }
+.btn-submit svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; flex-shrink: 0; }
+
+/* Answered state */
+.answered-state {
+  display: none; flex-direction: column; align-items: center;
+  text-align: center; padding: 14px 0; gap: 8px;
+}
+.answered-state.show { display: flex; }
+.answered-icon {
+  width: 56px; height: 56px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; margin-bottom: 4px;
+}
+.answered-icon.yes-icon { background: var(--accent-dim); border: 1.5px solid var(--accent-mid); }
+.answered-icon.no-icon  { background: var(--red-dim);    border: 1.5px solid rgba(201,69,69,0.2); }
+.answered-icon svg { width: 24px; height: 24px; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.answered-title { font-family: 'Playfair Display', 'DM Serif Display', serif; font-size: 1.3rem; color: var(--text); }
+.answered-sub { font-size: 0.82rem; color: var(--text-3); line-height: 1.4; }
+
+/* No question */
+.no-question { text-align: center; padding: 28px 12px; }
+.no-q-icon {
+  width: 60px; height: 60px; border-radius: 50%;
+  background: var(--surface-3); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;
+}
+.no-q-icon svg { stroke: var(--text-3); width: 26px; height: 26px; fill: none; stroke-width: 1.5; }
+.no-q-title { font-family: 'Playfair Display', 'DM Serif Display', serif; font-size: 1.2rem; color: var(--text-3); margin-bottom: 5px; }
+.no-q-sub { font-size: 0.83rem; color: var(--text-3); line-height: 1.4; }
+
+/* History */
+.history-list { display: flex; flex-direction: column; gap: 14px; }
+.hist-item {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 13px; padding: 13px 15px;
+  transition: border-color 0.16s;
+}
+.hist-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 4px; }
+.hist-q { font-size: 0.9rem; font-weight: 500; color: var(--text); flex: 1; line-height: 1.4; min-width: 0; }
+.hist-meta { font-size: 0.73rem; color: var(--text-3); white-space: nowrap; }
+.hist-reason { font-size: 0.79rem; color: var(--text-3); font-style: italic; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); }
+
+/* Docs */
+.doc-item {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 13px; padding: 13px 15px;
+  display: flex; align-items: center; gap: 12px;
+  transition: border-color 0.16s;
+}
+.doc-icon {
+  width: 38px; height: 38px; border-radius: 9px; flex-shrink: 0;
+  background: var(--red-dim); border: 1px solid rgba(201,69,69,0.14);
+  display: flex; align-items: center; justify-content: center;
+}
+.doc-icon svg { stroke: var(--red); width: 17px; height: 17px; fill: none; stroke-width: 2; }
+.doc-info { flex: 1; min-width: 0; }
+.doc-name { font-size: 0.9rem; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.doc-meta { font-size: 0.72rem; color: var(--text-3); margin-top: 2px; }
+.btn-view-doc {
+  min-height: 38px; padding: 0 14px; flex-shrink: 0;
+  background: var(--accent-dim); color: var(--accent);
+  border: 1px solid var(--accent-mid); border-radius: 8px;
+  cursor: pointer; font-family: inherit; font-size: 0.79rem; font-weight: 600;
+  transition: all 0.16s; white-space: nowrap;
+}
+.btn-view-doc:hover { background: var(--accent-mid); }
+
+/* Full-screen PDF modal for operator */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000;
+  backdrop-filter: blur(4px);
+  display: flex; flex-direction: column;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal-header {
+  padding: 14px 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--surface); flex-shrink: 0;
+}
+.modal-title { font-size: 0.9rem; font-weight: 600; color: var(--text); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.modal-close {
+  min-width: 40px; min-height: 40px; border-radius: 8px; flex-shrink: 0;
+  border: 1px solid var(--border); background: var(--surface-2);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.16s;
+}
+.modal-close:hover { background: var(--red-dim); border-color: rgba(201,69,69,0.25); }
+.modal-close svg { stroke: var(--text-2); width: 17px; height: 17px; fill: none; stroke-width: 2; }
+.modal-body { flex: 1 1 0; min-height: 0; overflow: hidden; }
+.modal-body iframe { width: 100%; height: 100%; border: none; display: block; zoom: 1.3; }
+.modal-note {
+  padding: 9px 16px; font-size: 0.74rem; color: var(--amber);
+  background: var(--amber-dim); border-top: 1px solid rgba(196,121,26,0.15); flex-shrink: 0;
 }
 
-function esc(s) { return API.escHtml(s); }
+.empty-state { text-align: center; padding: 32px 16px; color: var(--text-3); font-size: 0.85rem; line-height: 1.5; }
 
-async function answerYes() { if (!pendingQ) return; await submitAnswer('yes', ''); }
-
-function answerNo() {
-  document.getElementById('reasonBox').classList.add('open');
-  document.getElementById('reasonText').focus();
-}
-
-async function submitNo() {
-  const reason = document.getElementById('reasonText').value.trim();
-  if (!reason) {
-    document.getElementById('reasonText').style.borderColor = 'var(--red)';
-    document.getElementById('reasonText').placeholder = 'Ez a mező kötelező!';
-    return;
-  }
-  await submitAnswer('no', reason);
-}
-
-async function submitAnswer(answer, reason) {
-  const resp = {
-    question: pendingQ.text, answer, reason,
-    operatorName: user ? user.displayName : 'Operator',
-    pendingId: pendingQ.id,
-  };
-  await API.addResponse(resp);
-  answeredPendingId = pendingQ.id;
-  try { sessionStorage.setItem('op_answered_id', answeredPendingId); } catch {}
-  myResponses.push({ ...resp, time: new Date().toLocaleString('hu-HU') });
-  try { sessionStorage.setItem('op_my_responses', JSON.stringify(myResponses)); } catch {}
-  showAnswered(answer, reason);
-}
-
-function showAnswered(type, reason) {
-  document.getElementById('answerSection').style.display = 'none';
-  const state = document.getElementById('answeredState');
-  const icon  = document.getElementById('answeredIcon');
-  const svg   = document.getElementById('answeredSvg');
-  if (type === 'yes') {
-    icon.className = 'answered-icon yes-icon'; svg.style.stroke = 'var(--accent)';
-    svg.innerHTML  = '<polyline points="20 6 9 17 4 12"/>';
-    document.getElementById('answeredTitle').textContent = 'Igen — válasz elküldve';
-    document.getElementById('answeredSub').textContent   = 'A QA csapat értesítést kapott';
-  } else {
-    icon.className = 'answered-icon no-icon'; svg.style.stroke = 'var(--red)';
-    svg.innerHTML  = '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>';
-    document.getElementById('answeredTitle').textContent = 'Nem — válasz elküldve';
-    document.getElementById('answeredSub').textContent   = reason ? 'Ok: ' + reason : 'A QA csapat értesítést kapott';
-  }
-  state.classList.add('show');
-  document.getElementById('nav-qa').classList.remove('has-notif');
-}
-
-function renderHistory() {
-  const list = document.getElementById('historyList');
-  if (!myResponses.length) { list.innerHTML = '<div class="empty-state">Még nincs válasz</div>'; return; }
-  list.innerHTML = myResponses.slice().reverse().map(r => `
-    <div class="hist-item">
-      <div class="hist-top">
-        <div class="hist-q">${esc(r.question)}</div>
-        <span class="badge badge-${r.answer}">${r.answer === 'yes' ? '✓ Igen' : '✗ Nem'}</span>
-      </div>
-      <div class="hist-meta">${r.time || ''}</div>
-      ${r.reason ? `<div class="hist-reason">Ok: ${esc(r.reason)}</div>` : ''}
-    </div>`).join('');
-}
-
-function renderDocs() {
-  const list = document.getElementById('docList');
-  list.innerHTML = docs.length ? docs.map(d => `
-    <div class="doc-item">
-      <div class="doc-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
-      <div class="doc-info">
-        <div class="doc-name">${esc(d.name)}</div>
-        <div class="doc-meta">${d.size} · ${d.uploadedAt}</div>
-      </div>
-      <button class="btn-view-doc" onclick="viewPDF('${d.id}','${esc(d.name)}')">Megnyit</button>
-    </div>`).join('') : '<div class="empty-state">Nincs elérhető dokumentum</div>';
-}
-
-async function viewPDF(id, name) {
-  const doc = await API.getDocData(id);
-  document.getElementById('modalTitle').textContent = name;
-  document.getElementById('pdfFrame').src = doc.data + '#toolbar=0&navpanes=0';
-  document.getElementById('pdfModal').classList.add('open');
-}
-function closeModal() {
-  document.getElementById('pdfModal').classList.remove('open');
-  document.getElementById('pdfFrame').src = '';
-}
+::-webkit-scrollbar { width: 3px; }
