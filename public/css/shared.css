@@ -112,6 +112,12 @@ body {
 [data-theme="dark"] .icon-sun  { display: block; }
 [data-theme="dark"] .icon-moon { display: none; }
 
+/* ── Logo theme switching ─────────────────────────────────── */
+.logo-light { display: block; }
+.logo-dark  { display: none;  }
+[data-theme="dark"] .logo-light { display: none;  }
+[data-theme="dark"] .logo-dark  { display: block; }
+
 /* ── Topbar ───────────────────────────────────────────────── */
 .topbar {
   height: 56px;
@@ -220,8 +226,8 @@ body {
   flex: 1 1 0;
   min-height: 0; /* key: enables overflow-y scroll within flex */
   overflow-y: auto;
-  padding: 24px;
-  display: flex; flex-direction: column; gap: 18px;
+  padding: 28px 28px;
+  display: flex; flex-direction: column; gap: 24px;
 }
 
 /* ── Section headers ─────────────────────────────────────── */
@@ -237,7 +243,7 @@ body {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 18px 20px;
+  padding: 20px 22px;
   box-shadow: var(--shadow-sm);
   transition: background 0.25s, border-color 0.25s;
   min-width: 0; /* prevent grid / flex blowout */
@@ -257,7 +263,7 @@ body {
 .two-col {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  gap: 20px;
 }
 @media (max-width: 900px) {
   .two-col { grid-template-columns: 1fr; }
@@ -267,7 +273,7 @@ body {
 /* Columns set per-page (3 for QA, 4 for Management) */
 .stat-row {
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 .stat-card {
   background: var(--surface);
@@ -318,7 +324,7 @@ body {
 .badge-no  { background: var(--red-dim); color: var(--red); border-color: rgba(201,69,69,0.2); }
 
 /* ── Response / Answer items ─────────────────────────────── */
-.answer-list { display: flex; flex-direction: column; gap: 7px; max-height: 300px; overflow-y: auto; }
+.answer-list { display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow-y: auto; }
 .answer-item {
   background: var(--surface-2); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 10px 13px;
@@ -334,7 +340,7 @@ body {
 }
 
 /* ── Question list ────────────────────────────────────────── */
-.question-list { display: flex; flex-direction: column; gap: 5px; max-height: 260px; overflow-y: auto; }
+.question-list { display: flex; flex-direction: column; gap: 6px; max-height: 280px; overflow-y: auto; }
 .q-item {
   display: flex; align-items: center; gap: 10px;
   background: var(--surface-2); border: 1px solid var(--border);
@@ -396,7 +402,7 @@ select.inp {
 .add-q-form .inp { min-height: 38px; }
 
 /* ── PDF / Doc items ─────────────────────────────────────── */
-.pdf-list { display: flex; flex-direction: column; gap: 7px; margin-top: 14px; }
+.pdf-list { display: flex; flex-direction: column; gap: 9px; margin-top: 16px; }
 .pdf-item {
   display: flex; align-items: center; gap: 11px;
   background: var(--surface-2); border: 1px solid var(--border);
