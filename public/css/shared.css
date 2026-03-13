@@ -244,7 +244,7 @@ body {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 22px 24px;
+  padding: 24px 26px;
   box-shadow: var(--shadow-sm);
   transition: background 0.25s, border-color 0.25s;
   min-width: 0; /* prevent grid / flex blowout */
@@ -264,7 +264,7 @@ body {
 .two-col {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
+  gap: 28px;
 }
 @media (max-width: 900px) {
   .two-col { grid-template-columns: 1fr; }
@@ -274,15 +274,15 @@ body {
 /* Columns set per-page (3 for QA, 4 for Management) */
 .stat-row {
   display: grid;
-  gap: 20px;
+  gap: 24px;
 }
 .stat-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 18px 20px 20px;
+  padding: 22px 24px 24px;
   box-shadow: var(--shadow-sm);
-  display: flex; flex-direction: column; gap: 4px;
+  display: flex; flex-direction: column; gap: 6px;
   position: relative; overflow: hidden;
   transition: background 0.25s, border-color 0.25s, box-shadow 0.2s;
   min-width: 0;
@@ -325,7 +325,7 @@ body {
 .badge-no  { background: var(--red-dim); color: var(--red); border-color: rgba(201,69,69,0.2); }
 
 /* ── Response / Answer items ─────────────────────────────── */
-.answer-list { display: flex; flex-direction: column; gap: 12px; max-height: 320px; overflow-y: auto; }
+.answer-list { display: flex; flex-direction: column; gap: 14px; max-height: 320px; overflow-y: auto; }
 .answer-item {
   background: var(--surface-2); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 10px 13px;
@@ -341,7 +341,7 @@ body {
 }
 
 /* ── Question list ────────────────────────────────────────── */
-.question-list { display: flex; flex-direction: column; gap: 10px; max-height: 280px; overflow-y: auto; }
+.question-list { display: flex; flex-direction: column; gap: 12px; max-height: 280px; overflow-y: auto; }
 .q-item {
   display: flex; align-items: center; gap: 10px;
   background: var(--surface-2); border: 1px solid var(--border);
@@ -405,7 +405,7 @@ select.inp {
 /* ── PDF / Doc items ─────────────────────────────────────── */
 .pdf-list { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
 .pdf-item {
-  display: flex; align-items: center; gap: 11px;
+  display: flex; align-items: center; gap: 14px;
   background: var(--surface-2); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 10px 13px;
   transition: all var(--transition); min-width: 0;
