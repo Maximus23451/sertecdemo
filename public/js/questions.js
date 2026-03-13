@@ -1,8 +1,7 @@
-// questions.js – Shared question bank management
+// questions.js – Shared question bank management (v2)
 
 const QUESTIONS_KEY = 'qa_questions';
 
-// Default questions (used if nothing in localStorage)
 const DEFAULT_QUESTIONS = [
   { text: 'Minden gép megfelelően működik?', freq: 'Every 1 hour' },
   { text: 'Elvégezted a biztonsági ellenőrzést?', freq: 'Every shift' },
@@ -10,7 +9,6 @@ const DEFAULT_QUESTIONS = [
   { text: 'Van aktív minőségi probléma?', freq: 'Every 30 min' }
 ];
 
-// Load questions from localStorage
 function loadQuestions() {
   const stored = localStorage.getItem(QUESTIONS_KEY);
   if (stored) {
@@ -20,17 +18,14 @@ function loadQuestions() {
       console.error('Failed to parse stored questions', e);
     }
   }
-  // If nothing stored, set defaults
   localStorage.setItem(QUESTIONS_KEY, JSON.stringify(DEFAULT_QUESTIONS));
-  return DEFAULT_QUESTIONS.slice(); // return a copy
+  return DEFAULT_QUESTIONS.slice();
 }
 
-// Save questions to localStorage
 function saveQuestions(questions) {
   localStorage.setItem(QUESTIONS_KEY, JSON.stringify(questions));
 }
 
-// Add a new question
 function addQuestion(text, freq) {
   if (!text.trim()) return false;
   const questions = loadQuestions();
@@ -39,7 +34,6 @@ function addQuestion(text, freq) {
   return true;
 }
 
-// Delete a question by index
 function deleteQuestion(index) {
   const questions = loadQuestions();
   if (index >= 0 && index < questions.length) {
@@ -50,10 +44,23 @@ function deleteQuestion(index) {
   return false;
 }
 
-// Render the question list into a given container
+function escapeHtml(unsafe) {
+  if (!unsafe) return '';
+  return unsafe.replace(/[&<>"]/g, function(m) {
+    if (m === '&') return '&amp;';
+    if (m === '<') return '&lt;';
+    if (m === '>') return '&gt;';
+    if (m === '"') return '&quot;';
+    return m;
+  });
+}
+
 function renderQuestionList(containerId, withDelete = true) {
   const container = document.getElementById(containerId);
-  if (!container) return;
+  if (!container) {
+    console.warn(`Container #${containerId} not found`);
+    return;
+  }
 
   const questions = loadQuestions();
   if (questions.length === 0) {
@@ -78,29 +85,16 @@ function renderQuestionList(containerId, withDelete = true) {
   container.innerHTML = html;
 }
 
-// Helper to escape HTML (prevent XSS)
-function escapeHtml(unsafe) {
-  return unsafe.replace(/[&<>"]/g, function(m) {
-    if (m === '&') return '&amp;';
-    if (m === '<') return '&lt;';
-    if (m === '>') return '&gt;';
-    if (m === '"') return '&quot;';
-    return m;
-  });
-}
-
-// Global delete handler (used by buttons)
 window.deleteQuestionHandler = function(index) {
   if (deleteQuestion(index)) {
-    // Re-render both management and QA lists if they exist
+    // Refresh any visible question lists
     if (document.getElementById('questionList')) renderQuestionList('questionList', true);
-    if (document.getElementById('questionListManage')) renderQuestionList('questionListManage', true); // if used elsewhere
-    // Also update QA send dropdown
-    if (typeof populateQuestionSelect === 'function') populateQuestionSelect();
+    if (document.getElementById('questionListManage')) renderQuestionList('questionListManage', true);
+    // Also update QA dropdown
+    if (typeof populateQuestionSelect === 'function') populateQuestionSelect('questionSelect');
   }
 };
 
-// Populate a <select> with questions (for QA send tab)
 function populateQuestionSelect(selectId) {
   const select = document.getElementById(selectId);
   if (!select) return;
@@ -112,15 +106,17 @@ function populateQuestionSelect(selectId) {
   }
   questions.forEach((q, idx) => {
     const option = document.createElement('option');
-    option.value = idx; // store index as value (or use text)
+    option.value = idx;
     option.textContent = q.text;
     select.appendChild(option);
   });
 }
 
-// Make functions globally available (for onclick attributes)
+// Explicitly attach ALL functions to window
 window.loadQuestions = loadQuestions;
 window.addQuestion = addQuestion;
 window.deleteQuestion = deleteQuestion;
 window.renderQuestionList = renderQuestionList;
 window.populateQuestionSelect = populateQuestionSelect;
+
+console.log('✅ questions.js loaded');
