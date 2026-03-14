@@ -17,3 +17,43 @@ body {
 @media (max-width: 600px) {
   .stat-row { grid-template-columns: 1fr; }
 }
+
+/* ── Cloud link form ─────────────────────────────────────────── */
+.link-help {
+  display: flex; flex-direction: column; gap: 8px;
+  margin-bottom: 14px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 12px 14px;
+}
+.link-help-item {
+  font-size: 0.82rem; color: var(--text-2); line-height: 1.5;
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+}
+.link-help-item em { color: var(--text); font-style: normal; font-weight: 600; }
+.link-help-item code {
+  font-size: 0.78rem; background: var(--surface-3);
+  border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px;
+  color: var(--text-2);
+}
+
+.add-link-form {
+  display: flex; gap: 10px; align-items: stretch; flex-wrap: wrap;
+}
+.add-link-form .inp { min-height: 38px; }
+
+.link-error {
+  margin-top: 10px; padding: 9px 13px;
+  background: var(--red-dim); border: 1px solid rgba(201,69,69,0.2);
+  border-radius: var(--radius); font-size: 0.82rem; color: var(--red);
+}
+
+/* ── Source badges on doc list ───────────────────────────────── */
+.link-badge {
+  display: inline-flex; align-items: center;
+  font-size: 0.6rem; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; padding: 2px 7px; border-radius: 99px;
+  border: 1px solid; vertical-align: middle; margin-left: 6px;
+}
+.link-badge.gdrive   { background: rgba(66,133,244,0.1);  color: #4285F4; border-color: rgba(66,133,244,0.25); }
+.link-badge.onedrive { background: rgba(0,120,212,0.1);   color: #0078D4; border-color: rgba(0,120,212,0.25); }
+.link-badge.upload   { background: var(--accent-dim);     color: var(--accent); border-color: var(--accent-mid); }
