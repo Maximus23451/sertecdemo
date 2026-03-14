@@ -57,3 +57,37 @@ body {
 .link-badge.gdrive   { background: rgba(66,133,244,0.1);  color: #4285F4; border-color: rgba(66,133,244,0.25); }
 .link-badge.onedrive { background: rgba(0,120,212,0.1);   color: #0078D4; border-color: rgba(0,120,212,0.25); }
 .link-badge.upload   { background: var(--accent-dim);     color: var(--accent); border-color: var(--accent-mid); }
+
+/* ── Send document panel ─────────────────────────────────────── */
+.send-doc-panel { display: flex; flex-direction: column; gap: 12px; }
+
+.doc-dropdown {
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--surface); max-height: 220px; overflow-y: auto;
+}
+.doc-dropdown-empty {
+  padding: 14px 16px; font-size: 0.82rem; color: var(--text-3); text-align: center;
+}
+.doc-dropdown-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background var(--transition);
+}
+.doc-dropdown-item:last-child { border-bottom: none; }
+.doc-dropdown-item:hover    { background: var(--surface-2); }
+.doc-dropdown-item.selected { background: var(--blue-dim); border-left: 3px solid var(--blue); }
+.doc-dropdown-name { font-size: 0.85rem; font-weight: 500; color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.doc-selected-preview {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--blue-dim); border: 1px solid rgba(56,120,184,0.2);
+  border-radius: var(--radius); padding: 9px 13px;
+}
+.doc-selected-name { font-size: 0.84rem; font-weight: 500; color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.doc-deselect {
+  background: none; border: none; color: var(--text-3); cursor: pointer;
+  font-size: 0.9rem; padding: 2px 4px; border-radius: 4px; flex-shrink: 0;
+  transition: color var(--transition);
+}
+.doc-deselect:hover { color: var(--red); }
