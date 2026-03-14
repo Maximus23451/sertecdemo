@@ -8,6 +8,26 @@ const express  = require('express');
 const multer   = require('multer');
 const path     = require('path');
 const crypto   = require('crypto');
+const fs       = require('fs');
+
+
+// ─── Persistence ──────────────────────────────────────────────
+const DATA_DIR = path.join(__dirname, 'data');
+if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR);
+
+function dataPath(name) { return path.join(DATA_DIR, name + '.json'); }
+
+function loadData(name, fallback) {
+  try {
+    const raw = fs.readFileSync(dataPath(name), 'utf8');
+    return JSON.parse(raw);
+  } catch { return fallback; }
+}
+
+function saveData(name, data) {
+  try { fs.writeFileSync(dataPath(name), JSON.stringify(data, null, 2)); }
+  catch (e) { console.error('Failed to save', name, e.message); }
+}
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -21,11 +41,12 @@ app.get('/', (req, res) => res.redirect('/pre_login.html'));
 
 // ─── In-Memory Store ──────────────────────────────────────────
 const store = {
-  questions:  [],   // { id, text, freq, createdAt }
-  responses:  [],   // { id, question, answer, reason, time, operatorName }
-  docs:       [],   // { id, name, size, uploadedAt, data (base64) }
-  pending:    null, // { id, text, sentAt } — active question sent to operators
-  sseClients: [],   // SSE connections
+  questions:  loadData('questions', []),
+  responses:  loadData('responses', []),
+  docs:       loadData('docs',      []),
+  pending:    null,     // not persisted — resets on restart intentionally
+  pendingDoc: null,     // not persisted — resets on restart intentionally
+  sseClients: [],
 };
 
 // ─── Demo Users ───────────────────────────────────────────────
@@ -39,13 +60,16 @@ const USERS = [
   { username: 'operator3', password: 'demo123', role: 'operator',   displayName: 'Kiss Mónika' },
 ];
 
-// Seed some demo questions
-store.questions = [
-  { id: uid(), text: 'Minden gép megfelelően működik?',        freq: 'Every 1 hour',  createdAt: now() },
-  { id: uid(), text: 'Elvégezted a biztonsági ellenőrzést?',   freq: 'Every shift',   createdAt: now() },
-  { id: uid(), text: 'A munkaterület tiszta és rendezett?',    freq: 'Every 2 hours', createdAt: now() },
-  { id: uid(), text: 'Van aktív minőségi probléma?',           freq: 'Every 30 min',  createdAt: now() },
-];
+// Seed demo questions only on first run (empty store)
+if (store.questions.length === 0) {
+  store.questions = [
+    { id: uid(), text: 'Minden gép megfelelően működik?',        freq: 'Every 1 hour',  createdAt: now() },
+    { id: uid(), text: 'Elvégezted a biztonsági ellenőrzést?',   freq: 'Every shift',   createdAt: now() },
+    { id: uid(), text: 'A munkaterület tiszta és rendezett?',    freq: 'Every 2 hours', createdAt: now() },
+    { id: uid(), text: 'Van aktív minőségi probléma?',           freq: 'Every 30 min',  createdAt: now() },
+  ];
+  saveData('questions', store.questions);
+}
 
 // ─── Helpers ──────────────────────────────────────────────────
 function uid()  { return crypto.randomBytes(8).toString('hex'); }
@@ -106,12 +130,14 @@ app.post('/api/questions', (req, res) => {
   if (!text || !text.trim()) return res.status(400).json({ error: 'text required' });
   const q = { id: uid(), text: text.trim(), freq: freq || 'Every 1 hour', createdAt: now() };
   store.questions.push(q);
+  saveData('questions', store.questions);
   broadcast('questions', store.questions);
   res.json(q);
 });
 
 app.delete('/api/questions/:id', (req, res) => {
   store.questions = store.questions.filter(q => q.id !== req.params.id);
+  saveData('questions', store.questions);
   broadcast('questions', store.questions);
   res.json({ ok: true });
 });
@@ -142,6 +168,7 @@ app.post('/api/responses', (req, res) => {
   if (!question || !answer) return res.status(400).json({ error: 'question + answer required' });
   const r = { id: uid(), question, answer, reason: reason || '', operatorName: operatorName || 'Operator', time: now(), pendingId };
   store.responses.push(r);
+  saveData('responses', store.responses);
   broadcast('responses', store.responses);
   res.json(r);
 });
@@ -157,6 +184,7 @@ app.post('/api/docs', (req, res) => {
   if (!name || !data) return res.status(400).json({ error: 'name + data required' });
   const doc = { id: uid(), name, size, data, uploadedAt: now() };
   store.docs.push(doc);
+  saveData('docs', store.docs);
   broadcast('docs', store.docs.map(d => ({ id: d.id, name: d.name, size: d.size, uploadedAt: d.uploadedAt })));
   res.json({ id: doc.id, name: doc.name, size: doc.size, uploadedAt: doc.uploadedAt });
 });
@@ -170,18 +198,38 @@ app.get('/api/docs/:id', (req, res) => {
 
 app.delete('/api/docs/:id', (req, res) => {
   store.docs = store.docs.filter(d => d.id !== req.params.id);
+  saveData('docs', store.docs);
   broadcast('docs', store.docs.map(d => ({ id: d.id, name: d.name, size: d.size, uploadedAt: d.uploadedAt })));
   res.json({ ok: true });
 });
 
+
+// ─── Send / clear pending document ───────────────────────────
+app.post('/api/pending-doc', (req, res) => {
+  const { docId } = req.body;
+  const doc = store.docs.find(d => d.id === docId);
+  if (!doc) return res.status(404).json({ error: 'Document not found' });
+  store.pendingDoc = { id: uid(), docId: doc.id, name: doc.name, embedUrl: doc.data, sentAt: now() };
+  broadcast('pending-doc', store.pendingDoc);
+  res.json(store.pendingDoc);
+});
+
+app.delete('/api/pending-doc', (_, res) => {
+  store.pendingDoc = null;
+  broadcast('pending-doc', null);
+  res.json({ ok: true });
+});
+
+app.get('/api/pending-doc', (_, res) => res.json(store.pendingDoc));
+
 // ─── Stats helper ─────────────────────────────────────────────
 app.get('/api/stats', (_, res) => {
   res.json({
-    questionCount:  store.questions.length,
-    responseCount:  store.responses.length,
-    noCount:        store.responses.filter(r => r.answer === 'no').length,
-    docCount:       store.docs.length,
-    hasPending:     !!store.pending,
+    questions:  store.questions.length,
+    responses:  store.responses.length,
+    noAnswers:  store.responses.filter(r => r.answer === 'no').length,
+    docs:       store.docs.length,
+    hasPending: !!store.pending,
   });
 });
 
