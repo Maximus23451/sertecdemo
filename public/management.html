@@ -100,15 +100,45 @@
     <div id="tab-documents" style="display:none;">
       <div class="section-header">
         <div class="section-title">Document Management</div>
-        <div class="section-sub">Upload PDFs visible to QA &amp; Operators — view only, no download</div>
+        <div class="section-sub">Upload PDFs or link from Google Drive / OneDrive — visible to QA &amp; Operators</div>
       </div>
-      <div class="card">
+
+      <!-- Upload card -->
+      <div class="card" style="margin-bottom:16px;">
         <div class="card-header"><div class="card-title">Upload PDF</div></div>
         <div class="upload-zone" id="uploadZone">
           <input type="file" accept=".pdf" multiple id="fileInput" onchange="handleFiles(this.files)"/>
           <svg class="upload-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           <div class="upload-text"><strong>Click to upload</strong> or drag &amp; drop<br/>PDF files only</div>
         </div>
+      </div>
+
+      <!-- Link from cloud card -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header">
+          <div class="card-title">Link from Google Drive or OneDrive</div>
+        </div>
+        <div class="link-help">
+          <div class="link-help-item">
+            <span class="link-badge gdrive">Google Drive</span>
+            Share the file &rarr; <em>Anyone with the link</em> &rarr; paste the share URL below. Converted automatically.
+          </div>
+          <div class="link-help-item">
+            <span class="link-badge onedrive">OneDrive</span>
+            Share &rarr; <em>Embed</em> &rarr; copy the <code>src="&hellip;"</code> URL from the iframe snippet and paste it below.
+          </div>
+        </div>
+        <div class="add-link-form">
+          <input  class="inp" id="linkName" placeholder="Document name&hellip;" style="flex:1.2;"/>
+          <input  class="inp" id="linkUrl"  placeholder="Paste Google Drive share URL or OneDrive embed URL&hellip;" style="flex:3;"/>
+          <button class="btn-add" onclick="addLinkedDoc()">+ Add</button>
+        </div>
+        <div id="linkError" class="link-error" style="display:none;"></div>
+      </div>
+
+      <!-- Combined document list -->
+      <div class="card">
+        <div class="card-header"><div class="card-title">All Documents</div></div>
         <div class="pdf-list" id="pdfList"></div>
       </div>
     </div>
