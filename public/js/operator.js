@@ -19,8 +19,9 @@ try { myResponses = JSON.parse(sessionStorage.getItem('op_my_responses') || '[]'
 try { answeredPendingId = sessionStorage.getItem('op_answered_id') || null; } catch {}
 
 API.subscribe({
-  init:    d => { pendingQ = d.pending; docs = d.docs; checkQuestion(); renderHistory(); renderDocs(); },
-  pending: d => { pendingQ = d; checkQuestion(); },
+  init:    d => { pendingQ = d.pending; docs = d.docs; checkQuestion(); renderHistory(); renderDocs(); if (d.pendingDoc) showDocNotification(d.pendingDoc); },
+  pending:     d => { pendingQ = d; checkQuestion(); },
+  'pending-doc': d => { if (d) showDocNotification(d); else clearDocNotification(); },
   docs:    d => { docs = d; renderDocs(); },
 });
 
@@ -136,10 +137,48 @@ function renderDocs() {
 async function viewPDF(id, name) {
   const doc = await API.getDocData(id);
   document.getElementById('modalTitle').textContent = name;
-  document.getElementById('pdfFrame').src = doc.data + '#toolbar=0&navpanes=0&zoom=page-width';
+  document.getElementById('pdfFrame').src = doc.data + '#toolbar=0&navpanes=0';
   document.getElementById('pdfModal').classList.add('open');
 }
 function closeModal() {
   document.getElementById('pdfModal').classList.remove('open');
   document.getElementById('pdfFrame').src = '';
+}
+
+function showDocNotification(doc) {
+  let el = document.getElementById('docNotification');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'docNotification';
+    el.className = 'doc-notification';
+    // Insert at top of QA tab content
+    const qaTab = document.getElementById('tab-qa');
+    if (qaTab) qaTab.prepend(el);
+  }
+  el.innerHTML = `
+    <div class="doc-notif-inner">
+      <div class="doc-notif-badge"><span class="q-dot"></span> Új dokumentum érkezett</div>
+      <div class="doc-notif-name">${API.escHtml(doc.name)}</div>
+      <div class="doc-notif-meta">Elküldve: ${API.escHtml(doc.sentAt)}</div>
+      <button class="btn-open-doc" onclick="openNotifDoc('${doc.docId}','${API.escHtml(doc.name)}')">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Megnyit
+      </button>
+    </div>`;
+  el.style.display = 'block';
+  // Show nav notif dot on QA tab
+  document.getElementById('nav-qa').classList.add('has-notif');
+}
+
+function clearDocNotification() {
+  const el = document.getElementById('docNotification');
+  if (el) el.style.display = 'none';
+}
+
+async function openNotifDoc(docId, name) {
+  const doc = await API.getDocData(docId);
+  document.getElementById('modalTitle').textContent = name;
+  const src = doc.data.startsWith('http') ? doc.data : doc.data + '#toolbar=0&navpanes=0&zoom=page-width';
+  document.getElementById('pdfFrame').src = src;
+  document.getElementById('pdfModal').classList.add('open');
 }
