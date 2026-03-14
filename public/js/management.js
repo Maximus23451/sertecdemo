@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   await refreshAll();
 
-  // Real-time SSE updates
   API.subscribe({
     init:      async () => { await refreshAll(); },
     responses: async () => { await loadResponsesOverview(); await loadAllResponses(); await loadStats(); },
@@ -19,7 +18,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     questions: async () => { await loadOverviewQuestions(); await loadStats(); },
   });
 
-  // Drag-and-drop on upload zone
   const zone = document.getElementById('uploadZone');
   zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('drag'); });
   zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
@@ -54,12 +52,10 @@ async function loadStats() {
     document.getElementById('s-r').textContent    = stats.responses ?? 0;
     document.getElementById('s-no').textContent   = stats.noAnswers ?? 0;
     document.getElementById('s-docs').textContent = stats.docs      ?? 0;
-  } catch (e) {
-    console.error('Failed to load stats', e);
-  }
+  } catch (e) { console.error('Failed to load stats', e); }
 }
 
-// ── Overview: recent responses ─────────────────────────────────
+// ── Overview ───────────────────────────────────────────────────
 async function loadResponsesOverview() {
   const container = document.getElementById('ov-responses');
   try {
@@ -68,12 +64,9 @@ async function loadResponsesOverview() {
     container.innerHTML = latest.length
       ? latest.map(renderResponseItem).join('')
       : '<div class="empty-hint">No responses yet</div>';
-  } catch {
-    container.innerHTML = '<div class="empty-hint">Failed to load responses</div>';
-  }
+  } catch { container.innerHTML = '<div class="empty-hint">Failed to load responses</div>'; }
 }
 
-// ── Overview: active questions ─────────────────────────────────
 async function loadOverviewQuestions() {
   const container = document.getElementById('ov-questions');
   try {
@@ -85,9 +78,7 @@ async function loadOverviewQuestions() {
             <span class="q-freq">${escapeHtml(q.freq)}</span>
           </div>`).join('')
       : '<div class="empty-hint">No questions configured</div>';
-  } catch {
-    container.innerHTML = '<div class="empty-hint">Failed to load questions</div>';
-  }
+  } catch { container.innerHTML = '<div class="empty-hint">Failed to load questions</div>'; }
 }
 
 // ── All responses tab ──────────────────────────────────────────
@@ -99,9 +90,7 @@ async function loadAllResponses() {
     container.innerHTML = responses.length
       ? responses.slice().reverse().map(renderResponseItem).join('')
       : '<div class="empty-hint">No responses yet</div>';
-  } catch {
-    container.innerHTML = '<div class="empty-hint">Failed to load responses</div>';
-  }
+  } catch { container.innerHTML = '<div class="empty-hint">Failed to load responses</div>'; }
 }
 
 function renderResponseItem(r) {
@@ -123,47 +112,116 @@ async function loadDocuments() {
   try {
     const docs = await API.getDocs();
     list.innerHTML = docs.length
-      ? docs.map(doc => `
-          <div class="pdf-item">
-            <div class="pdf-icon">
-              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            </div>
-            <div class="pdf-info">
-              <div class="pdf-name">${escapeHtml(doc.name)}</div>
-              <div class="pdf-meta">${escapeHtml(doc.size)} · ${escapeHtml(doc.uploadedAt || doc.date || '')}</div>
-            </div>
-            <div class="pdf-actions">
-              <button class="btn-sm btn-view" onclick="openDoc('${doc.id}', '${escapeHtml(doc.name)}')">View</button>
-              <button class="btn-sm btn-del"  onclick="deleteDoc('${doc.id}')">Delete</button>
-            </div>
-          </div>`).join('')
-      : '<div class="empty-hint">No documents uploaded</div>';
-  } catch {
-    list.innerHTML = '<div class="empty-hint">Failed to load documents</div>';
-  }
+      ? docs.map(doc => {
+          const isLinked = doc.linked === true || (doc.data && doc.data.startsWith('http'));
+          const badge = isLinked
+            ? `<span class="doc-source-badge ${doc.source === 'onedrive' ? 'onedrive' : 'gdrive'}">${doc.source === 'onedrive' ? 'OneDrive' : 'Google Drive'}</span>`
+            : `<span class="doc-source-badge upload">Uploaded</span>`;
+          return `
+            <div class="pdf-item">
+              <div class="pdf-icon">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              </div>
+              <div class="pdf-info">
+                <div class="pdf-name">${escapeHtml(doc.name)} ${badge}</div>
+                <div class="pdf-meta">${escapeHtml(doc.size || '')}${doc.uploadedAt ? ' · ' + escapeHtml(doc.uploadedAt) : ''}</div>
+              </div>
+              <div class="pdf-actions">
+                <button class="btn-sm btn-view" onclick="openDoc('${doc.id}', '${escapeHtml(doc.name)}')">View</button>
+                <button class="btn-sm btn-del"  onclick="deleteDoc('${doc.id}')">Delete</button>
+              </div>
+            </div>`;
+        }).join('')
+      : '<div class="empty-hint">No documents yet</div>';
+  } catch { list.innerHTML = '<div class="empty-hint">Failed to load documents</div>'; }
 }
 
-// ── Upload ─────────────────────────────────────────────────────
+// ── URL parsing ────────────────────────────────────────────────
+// Returns { embedUrl, source } or null if unrecognised
+function parseCloudUrl(raw) {
+  const url = raw.trim();
+
+  // ── Google Drive ──────────────────────────────────────────
+  // Formats:
+  //   https://drive.google.com/file/d/FILE_ID/view?usp=sharing
+  //   https://drive.google.com/file/d/FILE_ID/edit
+  //   https://drive.google.com/open?id=FILE_ID
+  const gdMatch =
+    url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/) ||
+    url.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/);
+  if (gdMatch) {
+    return {
+      embedUrl: `https://drive.google.com/file/d/${gdMatch[1]}/preview`,
+      source: 'gdrive',
+    };
+  }
+
+  // ── OneDrive ──────────────────────────────────────────────
+  // Management should paste the embed src URL from OneDrive's Embed dialog.
+  // Typical format: https://onedrive.live.com/embed?...
+  // or              https://<tenant>.sharepoint.com/...
+  if (
+    url.includes('onedrive.live.com/embed') ||
+    url.includes('1drv.ms') ||
+    url.includes('sharepoint.com')
+  ) {
+    // 1drv.ms short links can't be used directly in iframes — tell the user
+    if (url.includes('1drv.ms')) {
+      return { error: 'OneDrive short links (1drv.ms) cannot be embedded. Please use Share → Embed in OneDrive and copy the src="…" URL from the iframe code.' };
+    }
+    return { embedUrl: url, source: 'onedrive' };
+  }
+
+  return null;
+}
+
+// ── Add linked doc ─────────────────────────────────────────────
+window.addLinkedDoc = async function () {
+  const nameInput  = document.getElementById('linkName');
+  const urlInput   = document.getElementById('linkUrl');
+  const errorEl    = document.getElementById('linkError');
+  const name = nameInput.value.trim();
+  const raw  = urlInput.value.trim();
+
+  errorEl.style.display = 'none';
+
+  if (!name) { showLinkError('Please enter a document name.'); return; }
+  if (!raw)  { showLinkError('Please paste a Google Drive or OneDrive URL.'); return; }
+
+  const parsed = parseCloudUrl(raw);
+  if (!parsed)          { showLinkError('URL not recognised. Paste a Google Drive share link or OneDrive embed URL.'); return; }
+  if (parsed.error)     { showLinkError(parsed.error); return; }
+
+  try {
+    // Store embedUrl as the "data" field so operator.js can use it directly as iframe src
+    await API.uploadDoc(name, parsed.source === 'gdrive' ? 'Google Drive' : 'OneDrive', parsed.embedUrl);
+    nameInput.value = '';
+    urlInput.value  = '';
+    await loadDocuments();
+    await loadStats();
+  } catch { showLinkError('Failed to save document link. Please try again.'); }
+};
+
+function showLinkError(msg) {
+  const el = document.getElementById('linkError');
+  el.textContent    = '⚠ ' + msg;
+  el.style.display  = 'block';
+}
+
+// ── File upload ────────────────────────────────────────────────
 window.handleFiles = async function (files) {
-  const zone = document.getElementById('uploadZone');
+  const zone    = document.getElementById('uploadZone');
   const allowed = Array.from(files).filter(f => f.type === 'application/pdf');
   if (!allowed.length) { alert('Only PDF files are allowed.'); return; }
 
   zone.classList.add('uploading');
-
   for (const file of allowed) {
     try {
       const base64 = await readFileAsBase64(file);
-      const sizeLabel = API.formatSize(file.size);
-      await API.uploadDoc(file.name, sizeLabel, base64);
-    } catch (e) {
-      alert(`Failed to upload "${file.name}": ${e.message}`);
-    }
+      await API.uploadDoc(file.name, API.formatSize(file.size), base64);
+    } catch (e) { alert(`Failed to upload "${file.name}": ${e.message}`); }
   }
-
   zone.classList.remove('uploading');
-  // Docs SSE event will trigger loadDocuments + loadStats automatically;
-  // fall back to manual refresh in case SSE is slow
   await loadDocuments();
   await loadStats();
 };
@@ -171,7 +229,7 @@ window.handleFiles = async function (files) {
 function readFileAsBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload  = () => resolve(reader.result); // full data-URL
+    reader.onload  = () => resolve(reader.result);
     reader.onerror = () => reject(new Error('File read failed'));
     reader.readAsDataURL(file);
   });
@@ -184,21 +242,21 @@ window.deleteDoc = async function (id) {
     await API.deleteDoc(id);
     await loadDocuments();
     await loadStats();
-  } catch {
-    alert('Failed to delete document.');
-  }
+  } catch { alert('Failed to delete document.'); }
 };
 
 // ── Document modal ─────────────────────────────────────────────
 window.openDoc = async function (id, name) {
   try {
     const doc = await API.getDocData(id);
-    document.getElementById('pdfFrame').src = doc.data + '#toolbar=0&navpanes=0';
+    // Linked docs already have a full embed URL; uploaded docs are base64 data-URLs
+    const src = doc.data.startsWith('http')
+      ? doc.data
+      : doc.data + '#toolbar=0&navpanes=0';
+    document.getElementById('pdfFrame').src      = src;
     document.getElementById('modalTitle').textContent = name;
     document.getElementById('pdfModal').classList.add('open');
-  } catch {
-    alert('Failed to open document.');
-  }
+  } catch { alert('Failed to open document.'); }
 };
 
 window.closeModal = function () {
