@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   API.subscribe({
     init:      async () => { await refreshAll(); },
     responses: async () => { await loadResponsesOverview(); await loadAllResponses(); await loadStats(); },
-    docs:      async () => { await loadDocuments(); await loadStats(); },
+    docs:      async () => { await loadDocuments(); await loadStats(); await populateSendDocDropdown(); },
     questions: async () => { await loadOverviewQuestions(); await loadStats(); },
   });
 
@@ -35,6 +35,7 @@ async function refreshAll() {
     loadResponsesOverview(),
     loadAllResponses(),
     loadOverviewQuestions(),
+    populateSendDocDropdown(),
   ]);
 }
 
@@ -285,3 +286,80 @@ function escapeHtml(unsafe) {
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m])
   );
 }
+
+// ── Send Document to Operators ─────────────────────────────────
+let _allLinkedDocs  = [];  // cache for search filtering
+let _selectedDocId  = null;
+
+async function populateSendDocDropdown() {
+  try {
+    const docs = await API.getDocs();
+    // Only linked docs (gdrive / onedrive) can be sent — uploaded ones are base64 blobs
+    _allLinkedDocs = docs.filter(d => d.size === 'Google Drive' || d.size === 'OneDrive');
+    filterDocDropdown(); // render with current search term
+  } catch { /* silent */ }
+}
+
+window.filterDocDropdown = function () {
+  const query    = (document.getElementById('docSearchInput').value || '').toLowerCase();
+  const dropdown = document.getElementById('docDropdown');
+  const filtered = query
+    ? _allLinkedDocs.filter(d => d.name.toLowerCase().includes(query))
+    : _allLinkedDocs;
+
+  if (!filtered.length) {
+    dropdown.innerHTML = `<div class="doc-dropdown-empty">${_allLinkedDocs.length ? 'No results for "' + escapeHtml(query) + '"' : 'No linked documents saved yet'}</div>`;
+    return;
+  }
+
+  dropdown.innerHTML = filtered.map(d => {
+    const isGdrive = d.size === 'Google Drive';
+    return `
+      <div class="doc-dropdown-item ${_selectedDocId === d.id ? 'selected' : ''}"
+           onclick="selectDoc('${d.id}', '${escapeHtml(d.name)}', '${isGdrive ? 'gdrive' : 'onedrive'}')">
+        <span class="link-badge ${isGdrive ? 'gdrive' : 'onedrive'}">${isGdrive ? 'Google Drive' : 'OneDrive'}</span>
+        <span class="doc-dropdown-name">${escapeHtml(d.name)}</span>
+      </div>`;
+  }).join('');
+};
+
+window.selectDoc = function (id, name, source) {
+  _selectedDocId = id;
+
+  // Highlight selected row
+  document.querySelectorAll('.doc-dropdown-item').forEach(el => el.classList.remove('selected'));
+  const row = document.querySelector(`.doc-dropdown-item[onclick*="'${id}'"]`);
+  if (row) row.classList.add('selected');
+
+  // Show preview chip
+  const preview = document.getElementById('docSelectedPreview');
+  const isGdrive = source === 'gdrive';
+  preview.style.display = 'flex';
+  preview.innerHTML = `
+    <span class="link-badge ${isGdrive ? 'gdrive' : 'onedrive'}">${isGdrive ? 'Google Drive' : 'OneDrive'}</span>
+    <span class="doc-selected-name">${escapeHtml(name)}</span>
+    <button class="doc-deselect" onclick="deselectDoc()" title="Clear">✕</button>`;
+
+  document.getElementById('btnSendDoc').disabled = false;
+};
+
+window.deselectDoc = function () {
+  _selectedDocId = null;
+  document.getElementById('docSelectedPreview').style.display = 'none';
+  document.getElementById('btnSendDoc').disabled = true;
+  document.querySelectorAll('.doc-dropdown-item').forEach(el => el.classList.remove('selected'));
+};
+
+window.sendDocument = async function () {
+  if (!_selectedDocId) return;
+  try {
+    await fetch('/api/pending-doc', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ docId: _selectedDocId }),
+    });
+    const flash = document.getElementById('docSentFlash');
+    flash.style.display = 'block';
+    setTimeout(() => { flash.style.display = 'none'; }, 3000);
+  } catch { alert('Failed to send document.'); }
+};
