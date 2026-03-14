@@ -225,3 +225,35 @@ body {
 .empty-state { text-align: center; padding: 32px 16px; color: var(--text-3); font-size: 0.85rem; line-height: 1.5; }
 
 ::-webkit-scrollbar { width: 3px; }
+
+/* ── Incoming document notification ─────────────────────────── */
+.doc-notification {
+  animation: fadeUp 0.3s ease both;
+}
+.doc-notif-inner {
+  background: var(--surface); border: 1.5px solid rgba(56,120,184,0.3);
+  border-radius: 16px; padding: 18px 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.doc-notif-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--blue-dim); border: 1px solid rgba(56,120,184,0.22);
+  color: var(--blue); font-size: 0.66rem; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 99px; width: fit-content;
+}
+.doc-notif-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem; font-weight: 500; color: var(--text); line-height: 1.3;
+}
+.doc-notif-meta { font-size: 0.76rem; color: var(--text-3); }
+.btn-open-doc {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: var(--touch); border-radius: 12px; border: none;
+  background: var(--blue); color: #fff;
+  font-family: inherit; font-size: 1rem; font-weight: 700;
+  cursor: pointer; margin-top: 4px; transition: all 0.18s;
+}
+.btn-open-doc:hover { background: #4A8FCE; }
+.btn-open-doc svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
