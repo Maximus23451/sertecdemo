@@ -136,6 +136,22 @@
         <div id="linkError" class="link-error" style="display:none;"></div>
       </div>
 
+      <!-- Send document to operators -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header">
+          <div class="card-title">Send Document to Operators</div>
+        </div>
+        <div class="send-doc-panel">
+          <input class="inp" id="docSearchInput" placeholder="Search saved documents…" oninput="filterDocDropdown()" autocomplete="off"/>
+          <div class="doc-dropdown" id="docDropdown">
+            <div class="doc-dropdown-empty">No linked documents saved yet</div>
+          </div>
+          <div id="docSelectedPreview" class="doc-selected-preview" style="display:none;"></div>
+          <div id="docSentFlash" class="sent-flash">✓ Document sent to all operators</div>
+          <button class="btn-send" id="btnSendDoc" onclick="sendDocument()" disabled>Send to Operators →</button>
+        </div>
+      </div>
+
       <!-- Combined document list -->
       <div class="card">
         <div class="card-header"><div class="card-title">All Documents</div></div>
