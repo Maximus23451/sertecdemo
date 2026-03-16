@@ -43,25 +43,3 @@ npm start
 
 ---
 
-## Notes
-
-- Data is **in-memory** — resets on server restart
-- PDFs stored as base64 in RAM — fine for demo, use S3 for production
-- All devices must hit the **same server URL** for real-time sync to work
-
-## File Structure
-
-```
-package.json      ← must be at root
-server.js         ← Express backend + SSE
-README.md
-.gitignore
-public/
-  api.js          ← shared API client
-  pre_login.html  ← entry / login selection
-  login.html      ← QA + Management login
-  rfid-login.html ← Operator RFID login
-  management.html ← Management dashboard
-  qa.html         ← QA dashboard
-  operator.html   ← Operator tablet dashboard
-```
