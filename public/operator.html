@@ -144,14 +144,16 @@
 
 <!-- PDF Modal (full-screen on mobile) -->
 <div class="modal-overlay" id="pdfModal">
-  <div class="modal-header">
-    <div class="modal-title" id="modalTitle">Dokumentum</div>
-    <button class="modal-close" onclick="closeModal()">
-      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
+  <div class="modal-container">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Dokumentum</div>
+      <button class="modal-close" onclick="closeModal()">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body"><iframe id="pdfFrame" src=""></iframe></div>
+    <div class="modal-note">⚠ Csak megtekintés — letöltés nem engedélyezett</div>
   </div>
-  <div class="modal-body"><iframe id="pdfFrame" src=""></iframe></div>
-  <div class="modal-note">⚠ Csak megtekintés — letöltés nem engedélyezett</div>
 </div>
 
 <script src="/api.js"></script>
