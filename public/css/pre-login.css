@@ -30,7 +30,7 @@ body {
 .pre-logo { width: 120px; height: auto; margin-bottom: 20px; }
 
 .pre-login-card h1 {
-  font-family: 'Playfair Display', 'DM Serif Display', serif;
+  font-family: 'Roboto', sans-serif;
   font-size: 2.3rem; font-weight: 500; color: #fff; margin-bottom: 8px;
 }
 .pre-login-card .subtitle {
