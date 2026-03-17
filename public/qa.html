@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Dashboard – QA</title>
   <link rel="icon" type="image/png" href="https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/2mHlsc.png"/>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="/css/shared.css"/>
   <link rel="stylesheet" href="/css/qa.css"/>
   <script src="/js/theme.js"></script>
@@ -33,6 +33,26 @@
       <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       Logout
     </button>
+  </div>
+</div>
+
+<!-- ── Mobile Nav (hidden on desktop, shown below 768px) ──── -->
+<div class="mobile-nav" id="mobileNav">
+  <div class="mobile-nav-item active" onclick="showTab('send',this); syncMobileNav(this)">
+    <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    Send Question
+  </div>
+  <div class="mobile-nav-item" onclick="showTab('responses',this); syncMobileNav(this)">
+    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    Responses
+  </div>
+  <div class="mobile-nav-item" onclick="showTab('documents',this); syncMobileNav(this)">
+    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    Documents
+  </div>
+  <div class="mobile-nav-item" onclick="showTab('manage-questions',this); syncMobileNav(this)">
+    <svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20"/></svg>
+    Manage Q's
   </div>
 </div>
 
@@ -181,5 +201,17 @@
 <script src="/api.js"></script>
   <script src="/js/questions.js"></script>
 <script src="/js/qa.js"></script>
+<script>
+  function syncMobileNav(clickedEl) {
+    document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.remove('active'));
+    const label = clickedEl.textContent.trim();
+    document.querySelectorAll('.mobile-nav-item').forEach(el => {
+      if (el.textContent.trim() === label) el.classList.add('active');
+    });
+  }
+  document.querySelectorAll('.sidebar .nav-item').forEach(item => {
+    item.addEventListener('click', () => syncMobileNav(item));
+  });
+</script>
 </body>
 </html>
