@@ -10,7 +10,6 @@ const path     = require('path');
 const crypto   = require('crypto');
 const fs       = require('fs');
 
-
 // ─── Persistence ──────────────────────────────────────────────
 const DATA_DIR = path.join(__dirname, 'data');
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR);
@@ -41,16 +40,17 @@ app.get('/', (req, res) => res.redirect('/pre_login.html'));
 
 // ─── In-Memory Store ──────────────────────────────────────────
 const store = {
-  questions:  loadData('questions', []),
+  questions:  loadData('questions',[]),
   responses:  loadData('responses', []),
-  docs:       loadData('docs',      []),
+  docs:       loadData('docs',[]),
+  machines:   loadData('machines',[]),
   pending:    null,     // not persisted — resets on restart intentionally
   pendingDoc: null,     // not persisted — resets on restart intentionally
-  sseClients: [],
+  sseClients:[],
 };
 
 // ─── Demo Users ───────────────────────────────────────────────
-const USERS = [
+const USERS =[
   { username: 'manager1',  password: 'demo123', role: 'management', displayName: 'Kovács Péter' },
   { username: 'manager2',  password: 'demo123', role: 'management', displayName: 'Nagy Anna' },
   { username: 'qa1',       password: 'demo123', role: 'qa',         displayName: 'Szabó Gábor' },
@@ -60,15 +60,18 @@ const USERS = [
   { username: 'operator3', password: 'demo123', role: 'operator',   displayName: 'Kiss Mónika' },
 ];
 
-// Seed demo questions only on first run (empty store)
+// Seed demo questions and set timestamps
 if (store.questions.length === 0) {
-  store.questions = [
-    { id: uid(), text: 'Minden gép megfelelően működik?',        freq: 'Every 1 hour',  createdAt: now() },
-    { id: uid(), text: 'Elvégezted a biztonsági ellenőrzést?',   freq: 'Every shift',   createdAt: now() },
-    { id: uid(), text: 'A munkaterület tiszta és rendezett?',    freq: 'Every 2 hours', createdAt: now() },
-    { id: uid(), text: 'Van aktív minőségi probléma?',           freq: 'Every 30 min',  createdAt: now() },
+  store.questions =[
+    { id: uid(), text: 'Minden gép megfelelően működik?',        freq: 'Every 1 hour',  createdAt: now(), lastSent: Date.now() },
+    { id: uid(), text: 'Elvégezted a biztonsági ellenőrzést?',   freq: 'Every shift',   createdAt: now(), lastSent: Date.now() },
+    { id: uid(), text: 'A munkaterület tiszta és rendezett?',    freq: 'Every 2 hours', createdAt: now(), lastSent: Date.now() },
+    { id: uid(), text: 'Van aktív minőségi probléma?',           freq: 'Every 30 min',  createdAt: now(), lastSent: Date.now() },
   ];
   saveData('questions', store.questions);
+} else {
+  // Ensure existing questions have a lastSent marker for the timers
+  store.questions.forEach(q => { if (!q.lastSent) q.lastSent = Date.now(); });
 }
 
 // ─── Helpers ──────────────────────────────────────────────────
@@ -84,11 +87,51 @@ function broadcast(event, data) {
   });
 }
 
+// ─── Automated Question Timer (runs every 1 min) ──────────────
+setInterval(() => {
+  const nowMs = Date.now();
+  let pendingUpdated = false;
+  
+  store.questions.forEach(q => {
+    let due = false;
+    const elapsedMins = (nowMs - (q.lastSent || 0)) / 60000;
+    
+    if (q.freq === 'Every 30 min' && elapsedMins >= 30) due = true;
+    if (q.freq === 'Every 1 hour' && elapsedMins >= 60) due = true;
+    if (q.freq === 'Every 2 hours' && elapsedMins >= 120) due = true;
+    if (q.freq === 'Once per day' && elapsedMins >= 1440) due = true;
+
+    if (due) {
+      q.lastSent = nowMs;
+      store.pending = { id: uid(), text: q.text, sentAt: now() };
+      pendingUpdated = true;
+    }
+  });
+
+  if (pendingUpdated) {
+    saveData('questions', store.questions);
+    broadcast('pending', store.pending);
+  }
+}, 60000);
+
 // ─── Auth ─────────────────────────────────────────────────────
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
   const user = USERS.find(u => u.username === username && u.password === password);
   if (!user) return res.status(401).json({ error: 'Invalid username or password' });
+
+  // If Operator logs in, send out the "Every shift" questions immediately
+  if (user.role === 'operator') {
+    const shiftQ = store.questions.find(q => q.freq === 'Every shift');
+    if (shiftQ) {
+      shiftQ.lastSent = Date.now();
+      saveData('questions', store.questions);
+      store.pending = { id: uid(), text: shiftQ.text, sentAt: now() };
+      // Broadcast it so the UI picks it up
+      broadcast('pending', store.pending);
+    }
+  }
+
   res.json({ username: user.username, role: user.role, displayName: user.displayName });
 });
 
@@ -100,10 +143,10 @@ app.get('/api/stream', (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.flushHeaders();
 
-  // Send current state immediately on connect
   res.write(`event: init\ndata: ${JSON.stringify({
     questions: store.questions,
     responses: store.responses,
+    machines:  store.machines,
     docs:      store.docs.map(d => ({ id: d.id, name: d.name, size: d.size, uploadedAt: d.uploadedAt })),
     pending:   store.pending,
   })}\n\n`);
@@ -111,7 +154,6 @@ app.get('/api/stream', (req, res) => {
   const client = { id: uid(), res };
   store.sseClients.push(client);
 
-  // Keepalive ping every 25s
   const ping = setInterval(() => {
     try { res.write(': ping\n\n'); } catch { clearInterval(ping); }
   }, 25000);
@@ -122,13 +164,45 @@ app.get('/api/stream', (req, res) => {
   });
 });
 
+// ─── Machines & Parts ─────────────────────────────────────────
+app.get('/api/machines', (_, res) => res.json(store.machines));
+
+app.post('/api/machines', (req, res) => {
+  const { name } = req.body;
+  if (!name || !name.trim()) return res.status(400).json({ error: 'Name required' });
+  const machine = { id: uid(), name: name.trim(), parts:[] };
+  store.machines.push(machine);
+  saveData('machines', store.machines);
+  broadcast('machines', store.machines);
+  res.json(machine);
+});
+
+app.post('/api/machines/:id/parts', (req, res) => {
+  const { part } = req.body;
+  const machine = store.machines.find(m => m.id === req.params.id);
+  if (!machine) return res.status(404).json({ error: 'Machine not found' });
+  if (part && !machine.parts.includes(part.trim())) {
+    machine.parts.push(part.trim());
+    saveData('machines', store.machines);
+    broadcast('machines', store.machines);
+  }
+  res.json(machine);
+});
+
+app.delete('/api/machines/:id', (req, res) => {
+  store.machines = store.machines.filter(m => m.id !== req.params.id);
+  saveData('machines', store.machines);
+  broadcast('machines', store.machines);
+  res.json({ ok: true });
+});
+
 // ─── Questions ────────────────────────────────────────────────
 app.get('/api/questions', (_, res) => res.json(store.questions));
 
 app.post('/api/questions', (req, res) => {
   const { text, freq } = req.body;
   if (!text || !text.trim()) return res.status(400).json({ error: 'text required' });
-  const q = { id: uid(), text: text.trim(), freq: freq || 'Every 1 hour', createdAt: now() };
+  const q = { id: uid(), text: text.trim(), freq: freq || 'Every 1 hour', createdAt: now(), lastSent: Date.now() };
   store.questions.push(q);
   saveData('questions', store.questions);
   broadcast('questions', store.questions);
@@ -147,6 +221,8 @@ app.post('/api/pending', (req, res) => {
   const { questionId } = req.body;
   const q = store.questions.find(q => q.id === questionId);
   if (!q) return res.status(404).json({ error: 'Question not found' });
+  q.lastSent = Date.now();
+  saveData('questions', store.questions);
   store.pending = { id: uid(), text: q.text, sentAt: now() };
   broadcast('pending', store.pending);
   res.json(store.pending);
@@ -173,11 +249,15 @@ app.post('/api/responses', (req, res) => {
   res.json(r);
 });
 
-// ─── Documents ────────────────────────────────────────────────
-app.get('/api/docs', (_, res) => {
-  // Return metadata only (no base64 data in list)
-  res.json(store.docs.map(d => ({ id: d.id, name: d.name, size: d.size, uploadedAt: d.uploadedAt })));
+app.delete('/api/responses', (_, res) => {
+  store.responses =[];
+  saveData('responses', store.responses);
+  broadcast('responses', store.responses);
+  res.json({ ok: true });
 });
+
+// ─── Documents ────────────────────────────────────────────────
+app.get('/api/docs', (_, res) => res.json(store.docs.map(d => ({ id: d.id, name: d.name, size: d.size, uploadedAt: d.uploadedAt }))));
 
 app.post('/api/docs', (req, res) => {
   const { name, size, data } = req.body;
@@ -192,7 +272,6 @@ app.post('/api/docs', (req, res) => {
 app.get('/api/docs/:id', (req, res) => {
   const doc = store.docs.find(d => d.id === req.params.id);
   if (!doc) return res.status(404).json({ error: 'Not found' });
-  // Return base64 data for viewing (no Content-Disposition: attachment header = no download prompt)
   res.json({ id: doc.id, name: doc.name, data: doc.data });
 });
 
@@ -202,25 +281,6 @@ app.delete('/api/docs/:id', (req, res) => {
   broadcast('docs', store.docs.map(d => ({ id: d.id, name: d.name, size: d.size, uploadedAt: d.uploadedAt })));
   res.json({ ok: true });
 });
-
-
-// ─── Send / clear pending document ───────────────────────────
-app.post('/api/pending-doc', (req, res) => {
-  const { docId } = req.body;
-  const doc = store.docs.find(d => d.id === docId);
-  if (!doc) return res.status(404).json({ error: 'Document not found' });
-  store.pendingDoc = { id: uid(), docId: doc.id, name: doc.name, embedUrl: doc.data, sentAt: now() };
-  broadcast('pending-doc', store.pendingDoc);
-  res.json(store.pendingDoc);
-});
-
-app.delete('/api/pending-doc', (_, res) => {
-  store.pendingDoc = null;
-  broadcast('pending-doc', null);
-  res.json({ ok: true });
-});
-
-app.get('/api/pending-doc', (_, res) => res.json(store.pendingDoc));
 
 // ─── Stats helper ─────────────────────────────────────────────
 app.get('/api/stats', (_, res) => {
@@ -236,8 +296,4 @@ app.get('/api/stats', (_, res) => {
 // ─── Start ────────────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`\n✅ Dashboard server running at http://localhost:${PORT}`);
-  console.log(`\n📋 Demo credentials (all passwords: demo123)`);
-  console.log(`   Management : manager1, manager2`);
-  console.log(`   QA         : qa1, qa2`);
-  console.log(`   Operator   : operator1, operator2, operator3\n`);
 });
