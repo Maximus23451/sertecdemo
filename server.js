@@ -71,10 +71,10 @@ function broadcast(event, data) {
 // ─── Seed demo questions on first run ────────────────────────
 if (store.questions.length === 0) {
   store.questions = [
-    { id: uid(), text: 'Minden gép megfelelően működik?',      freq: 'Every 1 hour',  createdAt: now(), lastSent: Date.now() },
-    { id: uid(), text: 'Elvégezted a biztonsági ellenőrzést?', freq: 'Every shift',   createdAt: now(), lastSent: Date.now() },
-    { id: uid(), text: 'A munkaterület tiszta és rendezett?',  freq: 'Every 2 hours', createdAt: now(), lastSent: Date.now() },
-    { id: uid(), text: 'Van aktív minőségi probléma?',         freq: 'Every 30 min',  createdAt: now(), lastSent: Date.now() },
+    { id: uid(), text: 'Minden gép megfelelően működik?',      freq: 'Every 1 hour',  createdAt: now(), lastSent: Date.now(), yesLabel: 'Igen', noLabel: 'Nem', requireExplanation: 'no'   },
+    { id: uid(), text: 'Elvégezted a biztonsági ellenőrzést?', freq: 'Every shift',   createdAt: now(), lastSent: Date.now(), yesLabel: 'Igen', noLabel: 'Nem', requireExplanation: 'no'   },
+    { id: uid(), text: 'A munkaterület tiszta és rendezett?',  freq: 'Every 2 hours', createdAt: now(), lastSent: Date.now(), yesLabel: 'Igen', noLabel: 'Nem', requireExplanation: 'no'   },
+    { id: uid(), text: 'Van aktív minőségi probléma?',         freq: 'Every 30 min',  createdAt: now(), lastSent: Date.now(), yesLabel: 'Igen', noLabel: 'Nem', requireExplanation: 'yes'  },
   ];
   saveData('questions', store.questions);
 } else {
@@ -97,7 +97,7 @@ setInterval(() => {
 
     if (due) {
       q.lastSent   = nowMs;
-      store.pending = { id: uid(), text: q.text, sentAt: now() };
+      store.pending = { id: uid(), text: q.text, sentAt: now(), yesLabel: q.yesLabel || 'Igen', noLabel: q.noLabel || 'Nem', requireExplanation: q.requireExplanation || 'no' };
       updated = true;
     }
   });
@@ -120,7 +120,7 @@ app.post('/api/login', (req, res) => {
     if (shiftQ) {
       shiftQ.lastSent  = Date.now();
       saveData('questions', store.questions);
-      store.pending = { id: uid(), text: shiftQ.text, sentAt: now() };
+      store.pending = { id: uid(), text: shiftQ.text, sentAt: now(), yesLabel: shiftQ.yesLabel || 'Igen', noLabel: shiftQ.noLabel || 'Nem', requireExplanation: shiftQ.requireExplanation || 'no' };
       broadcast('pending', store.pending);
     }
   }
@@ -193,9 +193,14 @@ app.delete('/api/machines/:id', (req, res) => {
 app.get('/api/questions', (_, res) => res.json(store.questions));
 
 app.post('/api/questions', (req, res) => {
-  const { text, freq } = req.body;
+  const { text, freq, yesLabel, noLabel, requireExplanation } = req.body;
   if (!text || !text.trim()) return res.status(400).json({ error: 'text required' });
-  const q = { id: uid(), text: text.trim(), freq: freq || 'Every 1 hour', createdAt: now(), lastSent: Date.now() };
+  const q = {
+    id: uid(), text: text.trim(), freq: freq || 'Every 1 hour',
+    yesLabel: yesLabel || 'Igen', noLabel: noLabel || 'Nem',
+    requireExplanation: requireExplanation || 'no',
+    createdAt: now(), lastSent: Date.now(),
+  };
   store.questions.push(q);
   saveData('questions', store.questions);
   broadcast('questions', store.questions);
@@ -218,7 +223,7 @@ app.post('/api/pending', (req, res) => {
   if (!q) return res.status(404).json({ error: 'Question not found' });
   q.lastSent    = Date.now();
   saveData('questions', store.questions);
-  store.pending = { id: uid(), text: q.text, sentAt: now() };
+  store.pending = { id: uid(), text: q.text, sentAt: now(), yesLabel: q.yesLabel || 'Igen', noLabel: q.noLabel || 'Nem', requireExplanation: q.requireExplanation || 'no' };
   broadcast('pending', store.pending);
   res.json(store.pending);
 });
