@@ -90,3 +90,32 @@ body {
   flex: 0 0 auto;
   white-space: nowrap;
 }
+
+/* ── Customizable question add form ──────────────────────────── */
+.add-q-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+.add-q-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.add-q-custom .inp {
+  font-size: 0.82rem;
+  min-height: 34px;
+  padding: 5px 10px;
+}
+.q-btn-labels {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-3);
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
