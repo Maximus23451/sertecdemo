@@ -146,15 +146,27 @@
         <div class="card-header"><div class="card-title">Question Bank</div></div>
         <div class="question-list" id="questionList"><div class="empty-hint">No questions yet.</div></div>
         <div class="add-q-form">
-          <input class="inp" id="newQText" placeholder="Enter question text…"/>
-          <select class="inp" id="newQFreq">
-            <option value="Every 30 min">Every 30 min</option>
-            <option value="Every 1 hour" selected>Every 1 hour</option>
-            <option value="Every 2 hours">Every 2 hours</option>
-            <option value="Every shift">Every shift</option>
-            <option value="Once per day">Once per day</option>
-          </select>
-          <button class="btn-add" onclick="addQuestionHandler()">+ Add</button>
+          <div class="add-q-row">
+            <input class="inp" id="newQText" placeholder="Enter question text…" style="flex:1;"/>
+            <select class="inp" id="newQFreq" style="flex:0 0 140px;">
+              <option value="Every 30 min">Every 30 min</option>
+              <option value="Every 1 hour" selected>Every 1 hour</option>
+              <option value="Every 2 hours">Every 2 hours</option>
+              <option value="Every shift">Every shift</option>
+              <option value="Once per day">Once per day</option>
+            </select>
+          </div>
+          <div class="add-q-row add-q-custom">
+            <input class="inp" id="newQYesLabel" placeholder="Yes label… (default: Igen)" style="flex:1;"/>
+            <input class="inp" id="newQNoLabel"  placeholder="No label… (default: Nem)"  style="flex:1;"/>
+            <select class="inp" id="newQExplain" style="flex:0 0 200px;" title="Which answer requires an explanation?">
+              <option value="no">Explain if: No</option>
+              <option value="yes">Explain if: Yes</option>
+              <option value="both">Explain if: Both</option>
+              <option value="none">No explanation needed</option>
+            </select>
+          </div>
+          <button class="btn-add" onclick="addQuestionHandler()" style="align-self:flex-end;">+ Add Question</button>
         </div>
       </div>
     </div>
