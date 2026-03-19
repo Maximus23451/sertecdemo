@@ -303,3 +303,21 @@ body {
 }
 .btn-open-doc:hover { background: #4A8FCE; }
 .btn-open-doc svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+/* ── Yes-answer explanation box (accent/green theme) ─────────── */
+.reason-label-yes {
+  color: var(--accent);
+}
+.reason-textarea-yes {
+  border-color: rgba(122,181,48,0.3);
+}
+.reason-textarea-yes:focus {
+  border-color: var(--accent);
+}
+.btn-submit-yes {
+  background: var(--accent);
+}
+.btn-submit-yes:hover {
+  background: #8ab828;
+  box-shadow: 0 4px 14px rgba(122,181,48,0.3);
+}
