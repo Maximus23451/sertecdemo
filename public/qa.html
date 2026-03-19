@@ -12,7 +12,6 @@
 </head>
 <body>
 
-<!-- ── Topbar ─────────────────────────────────────────────── -->
 <div class="topbar">
   <div class="topbar-left">
     <img class="logo-light" src="https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/uteZNI.png" alt="Logo"/><img class="logo-dark" src="https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/6zYjti.png" alt="Logo"/>
@@ -36,88 +35,56 @@
   </div>
 </div>
 
-<!-- ── Mobile Nav (hidden on desktop, shown below 768px) ──── -->
 <div class="mobile-nav" id="mobileNav">
   <div class="mobile-nav-item active" onclick="showTab('send',this); syncMobileNav(this)">
-    <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-    Send Question
+    <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send Question
   </div>
   <div class="mobile-nav-item" onclick="showTab('responses',this); syncMobileNav(this)">
-    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-    Responses
+    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Responses
   </div>
   <div class="mobile-nav-item" onclick="showTab('documents',this); syncMobileNav(this)">
-    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-    Documents
+    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Documents
   </div>
   <div class="mobile-nav-item" onclick="showTab('manage-questions',this); syncMobileNav(this)">
-    <svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20"/></svg>
-    Manage Q's
+    <svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20"/></svg> Manage Q's
   </div>
 </div>
 
-<!-- ── Body ───────────────────────────────────────────────── -->
 <div class="layout">
-
-  <!-- Sidebar -->
   <div class="sidebar">
     <div class="nav-section">
       <div class="nav-label">QA Tools</div>
       <div class="nav-item active" onclick="showTab('send',this)">
-        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        Send Question
+        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send Question
       </div>
       <div class="nav-item" onclick="showTab('responses',this)">
-        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        Responses
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Responses
       </div>
       <div class="nav-item" onclick="showTab('documents',this)">
-        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-        Documents
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Documents
       </div>
       <div class="nav-item" onclick="showTab('manage-questions', this)">
-        <svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20"/></svg>
-        Manage Questions
+        <svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20"/></svg> Manage Questions
       </div>
     </div>
   </div>
 
-  <!-- Main content -->
   <div class="main">
-
-    <!-- SEND TAB -->
     <div id="tab-send">
       <div class="section-header">
         <div class="section-title">Send QA Question</div>
         <div class="section-sub">Select a question and dispatch it to all operators</div>
       </div>
       <div class="stat-row">
-        <div class="stat-card blue">
-          <div class="stat-label">Questions Available</div>
-          <div class="stat-value blue" id="s-qcount">0</div>
-          <div class="stat-trend">in question bank</div>
-        </div>
-        <div class="stat-card green">
-          <div class="stat-label">Total Responses</div>
-          <div class="stat-value green" id="s-rcount">0</div>
-          <div class="stat-trend">from operators</div>
-        </div>
-        <div class="stat-card red">
-          <div class="stat-label">No Answers</div>
-          <div class="stat-value red" id="s-nocount">0</div>
-          <div class="stat-trend">require follow-up</div>
-        </div>
+        <div class="stat-card blue"><div class="stat-label">Questions Available</div><div class="stat-value blue" id="s-qcount">0</div><div class="stat-trend">in question bank</div></div>
+        <div class="stat-card green"><div class="stat-label">Total Responses</div><div class="stat-value green" id="s-rcount">0</div><div class="stat-trend">from operators</div></div>
+        <div class="stat-card red"><div class="stat-label">No Answers</div><div class="stat-value red" id="s-nocount">0</div><div class="stat-trend">require follow-up</div></div>
       </div>
       <div class="two-col">
         <div class="card">
           <div class="card-header"><div class="card-title">Dispatch Question</div></div>
           <div class="send-panel">
-            <div>
-              <div class="send-label">Select Question</div>
-              <select class="inp" id="questionSelect">
-                <option value="">— No questions available —</option>
-              </select>
-            </div>
+            <div><div class="send-label">Select Question</div><select class="inp" id="questionSelect"><option value="">— No questions available —</option></select></div>
             <div id="pendingActive" class="pending-active">⏳ Active: <span id="pendingText"></span></div>
             <div id="sentFlash" class="sent-flash">✓ Question dispatched to all operators</div>
             <button class="btn-send" onclick="sendQuestion()">Send to Operators →</button>
@@ -132,41 +99,28 @@
 
     <!-- RESPONSES TAB -->
     <div id="tab-responses" style="display:none;">
-      <div class="section-header">
-        <div class="section-title">All Responses</div>
-        <div class="section-sub">Complete log of operator answers</div>
+      <div class="section-header" style="flex-direction:row; justify-content:space-between; align-items:flex-end;">
+        <div>
+          <div class="section-title">All Responses</div>
+          <div class="section-sub">Complete log of operator answers</div>
+        </div>
+        <button class="btn-sm btn-del" style="margin-bottom:4px;" onclick="promptClearResponses()">Clear History</button>
       </div>
       <div class="card">
         <div class="answer-list" id="all-responses" style="max-height:600px;"><div class="empty-hint">No responses yet</div></div>
       </div>
     </div>
 
-    <!-- DOCUMENTS TAB -->
     <div id="tab-documents" style="display:none;">
-      <div class="section-header">
-        <div class="section-title">Documents</div>
-        <div class="section-sub">Shared by Management — view only</div>
-      </div>
-      <div class="card">
-        <div id="doc-list"><div class="empty-hint">No documents uploaded by management</div></div>
-      </div>
+      <div class="section-header"><div class="section-title">Documents</div><div class="section-sub">Shared by Management — view only</div></div>
+      <div class="card"><div id="doc-list"><div class="empty-hint">No documents uploaded by management</div></div></div>
     </div>
 
-    <!-- MANAGE QUESTIONS TAB -->
     <div id="tab-manage-questions" style="display:none;">
-      <div class="section-header">
-        <div class="section-title">QA Question Manager</div>
-        <div class="section-sub">Configure questions sent periodically to operators</div>
-      </div>
+      <div class="section-header"><div class="section-title">QA Question Manager</div><div class="section-sub">Configure questions sent periodically to operators</div></div>
       <div class="card">
-        <div class="card-header">
-          <div class="card-title">Question Bank</div>
-        </div>
-        <!-- Question list container – separate from form -->
-        <div class="question-list" id="questionList">
-          <div class="empty-hint">No questions yet.</div>
-        </div>
-        <!-- Add form – clearly outside the list -->
+        <div class="card-header"><div class="card-title">Question Bank</div></div>
+        <div class="question-list" id="questionList"><div class="empty-hint">No questions yet.</div></div>
         <div class="add-q-form">
           <input class="inp" id="newQText" placeholder="Enter question text…" />
           <select class="inp" id="newQFreq">
@@ -180,11 +134,21 @@
         </div>
       </div>
     </div>
-
   </div>
 </div>
 
-<!-- PDF Modal -->
+<!-- Custom Confirmation Modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal" style="max-width:380px; height:auto; min-height:auto; padding:22px;">
+    <h3 style="margin-bottom:10px; font-size:1.15rem; color:var(--text);">Confirm Action</h3>
+    <p style="font-size:0.88rem; color:var(--text-3); margin-bottom:24px; line-height:1.5;" id="confirmModalText">Are you sure?</p>
+    <div style="display:flex; justify-content:flex-end; gap:12px;">
+      <button class="btn-sm" style="background:var(--surface-3); border:1px solid var(--border); color:var(--text); padding:8px 16px; font-size:0.85rem;" onclick="closeConfirmModal()">Cancel</button>
+      <button class="btn-sm btn-del" style="padding:8px 16px; font-size:0.85rem;" id="confirmModalAction">Yes, proceed</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="pdfModal">
   <div class="modal">
     <div class="modal-header">
@@ -199,7 +163,6 @@
 </div>
 
 <script src="/api.js"></script>
-  <script src="/js/questions.js"></script>
 <script src="/js/qa.js"></script>
 <script>
   function syncMobileNav(clickedEl) {
