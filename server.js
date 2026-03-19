@@ -1,14 +1,12 @@
 /**
  * Dashboard App — Backend Server
  * Express + SSE (Server-Sent Events) for real-time cross-device sync
- * In-memory store (resets on restart) — swap for a DB for production
  */
 
-const express  = require('express');
-const multer   = require('multer');
-const path     = require('path');
-const crypto   = require('crypto');
-const fs       = require('fs');
+const express = require('express');
+const path    = require('path');
+const crypto  = require('crypto');
+const fs      = require('fs');
 
 // ─── Persistence ──────────────────────────────────────────────
 const DATA_DIR = path.join(__dirname, 'data');
@@ -17,10 +15,8 @@ if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR);
 function dataPath(name) { return path.join(DATA_DIR, name + '.json'); }
 
 function loadData(name, fallback) {
-  try {
-    const raw = fs.readFileSync(dataPath(name), 'utf8');
-    return JSON.parse(raw);
-  } catch { return fallback; }
+  try { return JSON.parse(fs.readFileSync(dataPath(name), 'utf8')); }
+  catch { return fallback; }
 }
 
 function saveData(name, data) {
@@ -40,45 +36,30 @@ app.get('/', (req, res) => res.redirect('/pre_login.html'));
 
 // ─── In-Memory Store ──────────────────────────────────────────
 const store = {
-  questions:  loadData('questions',[]),
-  responses:  loadData('responses', []),
-  docs:       loadData('docs',[]),
-  machines:   loadData('machines',[]),
-  pending:    null,     // not persisted — resets on restart intentionally
-  pendingDoc: null,     // not persisted — resets on restart intentionally
-  sseClients:[],
+  questions:  loadData('questions',  []),
+  responses:  loadData('responses',  []),
+  docs:       loadData('docs',       []),
+  machines:   loadData('machines',   []),
+  pending:    null,   // intentionally not persisted
+  pendingDoc: null,   // intentionally not persisted
+  sseClients: [],
 };
 
 // ─── Demo Users ───────────────────────────────────────────────
-const USERS =[
-  { username: 'manager1',  password: 'demo123', role: 'management', displayName: 'Kovács Péter' },
-  { username: 'manager2',  password: 'demo123', role: 'management', displayName: 'Nagy Anna' },
-  { username: 'qa1',       password: 'demo123', role: 'qa',         displayName: 'Szabó Gábor' },
-  { username: 'qa2',       password: 'demo123', role: 'qa',         displayName: 'Tóth Eszter' },
-  { username: 'operator1', password: 'demo123', role: 'operator',   displayName: 'Horváth Béla' },
-  { username: 'operator2', password: 'demo123', role: 'operator',   displayName: 'Varga Zsolt' },
-  { username: 'operator3', password: 'demo123', role: 'operator',   displayName: 'Kiss Mónika' },
+const USERS = [
+  { username: 'manager1',  password: 'demo123', role: 'management', displayName: 'Kovács Péter'  },
+  { username: 'manager2',  password: 'demo123', role: 'management', displayName: 'Nagy Anna'      },
+  { username: 'qa1',       password: 'demo123', role: 'qa',         displayName: 'Szabó Gábor'   },
+  { username: 'qa2',       password: 'demo123', role: 'qa',         displayName: 'Tóth Eszter'   },
+  { username: 'operator1', password: 'demo123', role: 'operator',   displayName: 'Horváth Béla'  },
+  { username: 'operator2', password: 'demo123', role: 'operator',   displayName: 'Varga Zsolt'   },
+  { username: 'operator3', password: 'demo123', role: 'operator',   displayName: 'Kiss Mónika'   },
 ];
 
-// Seed demo questions and set timestamps
-if (store.questions.length === 0) {
-  store.questions =[
-    { id: uid(), text: 'Minden gép megfelelően működik?',        freq: 'Every 1 hour',  createdAt: now(), lastSent: Date.now() },
-    { id: uid(), text: 'Elvégezted a biztonsági ellenőrzést?',   freq: 'Every shift',   createdAt: now(), lastSent: Date.now() },
-    { id: uid(), text: 'A munkaterület tiszta és rendezett?',    freq: 'Every 2 hours', createdAt: now(), lastSent: Date.now() },
-    { id: uid(), text: 'Van aktív minőségi probléma?',           freq: 'Every 30 min',  createdAt: now(), lastSent: Date.now() },
-  ];
-  saveData('questions', store.questions);
-} else {
-  // Ensure existing questions have a lastSent marker for the timers
-  store.questions.forEach(q => { if (!q.lastSent) q.lastSent = Date.now(); });
-}
-
 // ─── Helpers ──────────────────────────────────────────────────
-function uid()  { return crypto.randomBytes(8).toString('hex'); }
-function now()  { return new Date().toLocaleString('hu-HU'); }
+function uid() { return crypto.randomBytes(8).toString('hex'); }
+function now() { return new Date().toLocaleString('hu-HU'); }
 
-// Broadcast to all SSE clients
 function broadcast(event, data) {
   const msg = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
   store.sseClients = store.sseClients.filter(client => {
@@ -87,28 +68,41 @@ function broadcast(event, data) {
   });
 }
 
-// ─── Automated Question Timer (runs every 1 min) ──────────────
+// ─── Seed demo questions on first run ────────────────────────
+if (store.questions.length === 0) {
+  store.questions = [
+    { id: uid(), text: 'Minden gép megfelelően működik?',      freq: 'Every 1 hour',  createdAt: now(), lastSent: Date.now() },
+    { id: uid(), text: 'Elvégezted a biztonsági ellenőrzést?', freq: 'Every shift',   createdAt: now(), lastSent: Date.now() },
+    { id: uid(), text: 'A munkaterület tiszta és rendezett?',  freq: 'Every 2 hours', createdAt: now(), lastSent: Date.now() },
+    { id: uid(), text: 'Van aktív minőségi probléma?',         freq: 'Every 30 min',  createdAt: now(), lastSent: Date.now() },
+  ];
+  saveData('questions', store.questions);
+} else {
+  // Ensure existing questions have lastSent so the timer works
+  store.questions.forEach(q => { if (!q.lastSent) q.lastSent = Date.now(); });
+}
+
+// ─── Automated Question Timer (checks every 1 min) ───────────
 setInterval(() => {
   const nowMs = Date.now();
-  let pendingUpdated = false;
-  
+  let updated = false;
+
   store.questions.forEach(q => {
+    const elapsed = (nowMs - (q.lastSent || 0)) / 60000; // minutes
     let due = false;
-    const elapsedMins = (nowMs - (q.lastSent || 0)) / 60000;
-    
-    if (q.freq === 'Every 30 min' && elapsedMins >= 30) due = true;
-    if (q.freq === 'Every 1 hour' && elapsedMins >= 60) due = true;
-    if (q.freq === 'Every 2 hours' && elapsedMins >= 120) due = true;
-    if (q.freq === 'Once per day' && elapsedMins >= 1440) due = true;
+    if (q.freq === 'Every 30 min'  && elapsed >= 30)   due = true;
+    if (q.freq === 'Every 1 hour'  && elapsed >= 60)   due = true;
+    if (q.freq === 'Every 2 hours' && elapsed >= 120)  due = true;
+    if (q.freq === 'Once per day'  && elapsed >= 1440) due = true;
 
     if (due) {
-      q.lastSent = nowMs;
+      q.lastSent   = nowMs;
       store.pending = { id: uid(), text: q.text, sentAt: now() };
-      pendingUpdated = true;
+      updated = true;
     }
   });
 
-  if (pendingUpdated) {
+  if (updated) {
     saveData('questions', store.questions);
     broadcast('pending', store.pending);
   }
@@ -120,14 +114,13 @@ app.post('/api/login', (req, res) => {
   const user = USERS.find(u => u.username === username && u.password === password);
   if (!user) return res.status(401).json({ error: 'Invalid username or password' });
 
-  // If Operator logs in, send out the "Every shift" questions immediately
+  // When an operator logs in, immediately send the "Every shift" question
   if (user.role === 'operator') {
     const shiftQ = store.questions.find(q => q.freq === 'Every shift');
     if (shiftQ) {
-      shiftQ.lastSent = Date.now();
+      shiftQ.lastSent  = Date.now();
       saveData('questions', store.questions);
       store.pending = { id: uid(), text: shiftQ.text, sentAt: now() };
-      // Broadcast it so the UI picks it up
       broadcast('pending', store.pending);
     }
   }
@@ -170,7 +163,7 @@ app.get('/api/machines', (_, res) => res.json(store.machines));
 app.post('/api/machines', (req, res) => {
   const { name } = req.body;
   if (!name || !name.trim()) return res.status(400).json({ error: 'Name required' });
-  const machine = { id: uid(), name: name.trim(), parts:[] };
+  const machine = { id: uid(), name: name.trim(), parts: [] };
   store.machines.push(machine);
   saveData('machines', store.machines);
   broadcast('machines', store.machines);
@@ -181,7 +174,7 @@ app.post('/api/machines/:id/parts', (req, res) => {
   const { part } = req.body;
   const machine = store.machines.find(m => m.id === req.params.id);
   if (!machine) return res.status(404).json({ error: 'Machine not found' });
-  if (part && !machine.parts.includes(part.trim())) {
+  if (part && part.trim() && !machine.parts.includes(part.trim())) {
     machine.parts.push(part.trim());
     saveData('machines', store.machines);
     broadcast('machines', store.machines);
@@ -216,12 +209,14 @@ app.delete('/api/questions/:id', (req, res) => {
   res.json({ ok: true });
 });
 
-// ─── Send / clear pending question ───────────────────────────
+// ─── Pending question ─────────────────────────────────────────
+app.get('/api/pending', (_, res) => res.json(store.pending));
+
 app.post('/api/pending', (req, res) => {
   const { questionId } = req.body;
   const q = store.questions.find(q => q.id === questionId);
   if (!q) return res.status(404).json({ error: 'Question not found' });
-  q.lastSent = Date.now();
+  q.lastSent    = Date.now();
   saveData('questions', store.questions);
   store.pending = { id: uid(), text: q.text, sentAt: now() };
   broadcast('pending', store.pending);
@@ -233,8 +228,6 @@ app.delete('/api/pending', (_, res) => {
   broadcast('pending', null);
   res.json({ ok: true });
 });
-
-app.get('/api/pending', (_, res) => res.json(store.pending));
 
 // ─── Responses ────────────────────────────────────────────────
 app.get('/api/responses', (_, res) => res.json(store.responses));
@@ -250,14 +243,16 @@ app.post('/api/responses', (req, res) => {
 });
 
 app.delete('/api/responses', (_, res) => {
-  store.responses =[];
+  store.responses = [];
   saveData('responses', store.responses);
   broadcast('responses', store.responses);
   res.json({ ok: true });
 });
 
 // ─── Documents ────────────────────────────────────────────────
-app.get('/api/docs', (_, res) => res.json(store.docs.map(d => ({ id: d.id, name: d.name, size: d.size, uploadedAt: d.uploadedAt }))));
+app.get('/api/docs', (_, res) =>
+  res.json(store.docs.map(d => ({ id: d.id, name: d.name, size: d.size, uploadedAt: d.uploadedAt })))
+);
 
 app.post('/api/docs', (req, res) => {
   const { name, size, data } = req.body;
@@ -282,18 +277,41 @@ app.delete('/api/docs/:id', (req, res) => {
   res.json({ ok: true });
 });
 
-// ─── Stats helper ─────────────────────────────────────────────
+// ─── Pending document ─────────────────────────────────────────
+app.get('/api/pending-doc', (_, res) => res.json(store.pendingDoc));
+
+app.post('/api/pending-doc', (req, res) => {
+  const { docId } = req.body;
+  const doc = store.docs.find(d => d.id === docId);
+  if (!doc) return res.status(404).json({ error: 'Document not found' });
+  store.pendingDoc = { id: uid(), docId: doc.id, name: doc.name, embedUrl: doc.data, sentAt: now() };
+  broadcast('pending-doc', store.pendingDoc);
+  res.json(store.pendingDoc);
+});
+
+app.delete('/api/pending-doc', (_, res) => {
+  store.pendingDoc = null;
+  broadcast('pending-doc', null);
+  res.json({ ok: true });
+});
+
+// ─── Stats ────────────────────────────────────────────────────
 app.get('/api/stats', (_, res) => {
   res.json({
     questions:  store.questions.length,
     responses:  store.responses.length,
     noAnswers:  store.responses.filter(r => r.answer === 'no').length,
     docs:       store.docs.length,
+    machines:   store.machines.length,
     hasPending: !!store.pending,
   });
 });
 
 // ─── Start ────────────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`\n✅ Dashboard server running at http://localhost:${PORT}`);
+  console.log(`\n✅  Dashboard server running at http://localhost:${PORT}`);
+  console.log(`\n📋  Demo credentials (all passwords: demo123)`);
+  console.log(`    Management : manager1, manager2`);
+  console.log(`    QA         : qa1, qa2`);
+  console.log(`    Operator   : operator1, operator2, operator3\n`);
 });
