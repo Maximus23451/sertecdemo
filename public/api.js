@@ -1,10 +1,11 @@
+--- START OF FILE public/api.js ---
 /**
  * api.js — shared API helpers for all dashboard pages
  * Loaded as a <script src="/api.js"> in every HTML page
  */
 
 const API = {
-  base: '',   // same origin
+  base: '',
 
   async login(username, password) {
     const r = await fetch('/api/login', {
@@ -16,7 +17,6 @@ const API = {
     return r.json();
   },
 
-  // Session helpers (sessionStorage so each tab is independent)
   setUser(user) { sessionStorage.setItem('dashboard_user', JSON.stringify(user)); },
   getUser()     { try { return JSON.parse(sessionStorage.getItem('dashboard_user')); } catch { return null; } },
   clearUser()   { sessionStorage.removeItem('dashboard_user'); },
@@ -58,6 +58,21 @@ const API = {
       body: JSON.stringify(data)
     })).json();
   },
+  async clearResponses()       { return (await fetch('/api/responses', {method:'DELETE'})).json(); },
+
+  // Machines & Parts
+  async getMachines()          { return (await fetch('/api/machines')).json(); },
+  async addMachine(name)       {
+    return (await fetch('/api/machines', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name})
+    })).json();
+  },
+  async addPartToMachine(id, part) {
+    return (await fetch(`/api/machines/${id}/parts`, {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({part})
+    })).json();
+  },
+  async deleteMachine(id)      { return (await fetch(`/api/machines/${id}`, {method:'DELETE'})).json(); },
 
   // Docs
   async getDocs()              { return (await fetch('/api/docs')).json(); },
@@ -80,12 +95,13 @@ const API = {
     es.addEventListener('questions', e => handlers.questions?.(JSON.parse(e.data)));
     es.addEventListener('responses', e => handlers.responses?.(JSON.parse(e.data)));
     es.addEventListener('docs',      e => handlers.docs?.(JSON.parse(e.data)));
+    es.addEventListener('machines',  e => handlers.machines?.(JSON.parse(e.data)));
     es.addEventListener('pending',   e => handlers.pending?.(JSON.parse(e.data)));
     es.onerror = () => setTimeout(() => this.subscribe(handlers), 3000);
     return es;
   },
 
-  // Utility
   escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); },
   formatSize(b) { return b > 1048576 ? (b/1048576).toFixed(1)+' MB' : (b/1024).toFixed(0)+' KB'; },
 };
+--- END OF FILE public/api.js ---
