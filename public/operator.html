@@ -15,7 +15,8 @@
 <!-- ── Topbar ─────────────────────────────────────────────── -->
 <div class="topbar">
   <div class="topbar-left">
-    <img class="logo-light" src="https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/uteZNI.png" alt="Logo"/><img class="logo-dark" src="https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/6zYjti.png" alt="Logo"/>
+    <img class="logo-light" src="https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/uteZNI.png" alt="Logo"/>
+    <img class="logo-dark"  src="https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/6zYjti.png" alt="Logo"/>
     <div class="topbar-sep"></div>
     <span class="role-badge operator">Operátor</span>
   </div>
@@ -69,19 +70,32 @@
       <div class="q-sent-at" id="qSentAt"></div>
 
       <div id="answerSection">
+        <!-- Yes / No buttons — labels are set dynamically by operator.js -->
         <div class="answer-btns">
           <button class="btn-answer btn-yes" onclick="answerYes()">
             <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-            Igen
+            <span id="btnYesLabel">Igen</span>
           </button>
           <button class="btn-answer btn-no" onclick="answerNo()">
             <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            Nem
+            <span id="btnNoLabel">Nem</span>
           </button>
         </div>
-        <div class="reason-box" id="reasonBox">
+
+        <!-- Explanation box for YES answer (accent/green theme) -->
+        <div class="reason-box reason-box-yes" id="yesReasonBox">
+          <div class="reason-label reason-label-yes">⚠ Miért igen? (kötelező)</div>
+          <textarea class="reason-textarea reason-textarea-yes" id="yesReasonText" placeholder="Írd le az okot…" rows="4"></textarea>
+          <button class="btn-submit btn-submit-yes" onclick="submitYes()">
+            <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Elküld
+          </button>
+        </div>
+
+        <!-- Explanation box for NO answer (red theme — same as before) -->
+        <div class="reason-box" id="noReasonBox">
           <div class="reason-label">⚠ Miért nem? (kötelező)</div>
-          <textarea class="reason-textarea" id="reasonText" placeholder="Írd le az okot…" rows="4"></textarea>
+          <textarea class="reason-textarea" id="noReasonText" placeholder="Írd le az okot…" rows="4"></textarea>
           <button class="btn-submit" onclick="submitNo()">
             <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             Elküld
@@ -142,7 +156,7 @@
   </button>
 </div>
 
-<!-- PDF Modal (full-screen on mobile) -->
+<!-- PDF Modal -->
 <div class="modal-overlay" id="pdfModal">
   <div class="modal-container">
     <div class="modal-header">
