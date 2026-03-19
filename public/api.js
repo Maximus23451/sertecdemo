@@ -1,7 +1,6 @@
---- START OF FILE public/api.js ---
 /**
  * api.js — shared API helpers for all dashboard pages
- * Loaded as a <script src="/api.js"> in every HTML page
+ * Place this file at: public/api.js
  */
 
 const API = {
@@ -17,9 +16,9 @@ const API = {
     return r.json();
   },
 
-  setUser(user) { sessionStorage.setItem('dashboard_user', JSON.stringify(user)); },
-  getUser()     { try { return JSON.parse(sessionStorage.getItem('dashboard_user')); } catch { return null; } },
-  clearUser()   { sessionStorage.removeItem('dashboard_user'); },
+  setUser(user)  { sessionStorage.setItem('dashboard_user', JSON.stringify(user)); },
+  getUser()      { try { return JSON.parse(sessionStorage.getItem('dashboard_user')); } catch { return null; } },
+  clearUser()    { sessionStorage.removeItem('dashboard_user'); },
 
   requireRole(allowed) {
     const user = this.getUser();
@@ -30,65 +29,67 @@ const API = {
     return user;
   },
 
-  // Questions
-  async getQuestions()         { return (await fetch('/api/questions')).json(); },
-  async addQuestion(text,freq) {
+  // ── Questions ─────────────────────────────────────────────────
+  async getQuestions() { return (await fetch('/api/questions')).json(); },
+  async addQuestion(text, freq) {
     return (await fetch('/api/questions', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({text,freq})
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, freq }),
     })).json();
   },
-  async deleteQuestion(id)     { return (await fetch(`/api/questions/${id}`, {method:'DELETE'})).json(); },
+  async deleteQuestion(id) { return (await fetch(`/api/questions/${id}`, { method: 'DELETE' })).json(); },
 
-  // Pending
-  async getPending()           { return (await fetch('/api/pending')).json(); },
-  async sendPending(questionId){
+  // ── Pending ───────────────────────────────────────────────────
+  async getPending() { return (await fetch('/api/pending')).json(); },
+  async sendPending(questionId) {
     return (await fetch('/api/pending', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({questionId})
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ questionId }),
     })).json();
   },
-  async clearPending()         { return (await fetch('/api/pending', {method:'DELETE'})).json(); },
+  async clearPending() { return (await fetch('/api/pending', { method: 'DELETE' })).json(); },
 
-  // Responses
-  async getResponses()         { return (await fetch('/api/responses')).json(); },
-  async addResponse(data)      {
+  // ── Responses ─────────────────────────────────────────────────
+  async getResponses() { return (await fetch('/api/responses')).json(); },
+  async addResponse(data) {
     return (await fetch('/api/responses', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(data)
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
     })).json();
   },
-  async clearResponses()       { return (await fetch('/api/responses', {method:'DELETE'})).json(); },
+  async clearResponses() { return (await fetch('/api/responses', { method: 'DELETE' })).json(); },
 
-  // Machines & Parts
-  async getMachines()          { return (await fetch('/api/machines')).json(); },
-  async addMachine(name)       {
+  // ── Machines & Parts ──────────────────────────────────────────
+  async getMachines() { return (await fetch('/api/machines')).json(); },
+  async addMachine(name) {
     return (await fetch('/api/machines', {
-      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name})
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name }),
     })).json();
   },
   async addPartToMachine(id, part) {
     return (await fetch(`/api/machines/${id}/parts`, {
-      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({part})
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ part }),
     })).json();
   },
-  async deleteMachine(id)      { return (await fetch(`/api/machines/${id}`, {method:'DELETE'})).json(); },
+  async deleteMachine(id) { return (await fetch(`/api/machines/${id}`, { method: 'DELETE' })).json(); },
 
-  // Docs
-  async getDocs()              { return (await fetch('/api/docs')).json(); },
-  async uploadDoc(name,size,data) {
+  // ── Documents ─────────────────────────────────────────────────
+  async getDocs() { return (await fetch('/api/docs')).json(); },
+  async uploadDoc(name, size, data) {
     return (await fetch('/api/docs', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({name,size,data})
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, size, data }),
     })).json();
   },
-  async getDocData(id)         { return (await fetch(`/api/docs/${id}`)).json(); },
-  async deleteDoc(id)          { return (await fetch(`/api/docs/${id}`, {method:'DELETE'})).json(); },
+  async getDocData(id) { return (await fetch(`/api/docs/${id}`)).json(); },
+  async deleteDoc(id)  { return (await fetch(`/api/docs/${id}`, { method: 'DELETE' })).json(); },
 
-  // Stats
-  async getStats()             { return (await fetch('/api/stats')).json(); },
+  // ── Stats ─────────────────────────────────────────────────────
+  async getStats() { return (await fetch('/api/stats')).json(); },
 
-  // SSE — real-time events
+  // ── SSE real-time events ──────────────────────────────────────
   subscribe(handlers) {
     const es = new EventSource('/api/stream');
     es.addEventListener('init',      e => handlers.init?.(JSON.parse(e.data)));
@@ -101,7 +102,11 @@ const API = {
     return es;
   },
 
-  escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); },
-  formatSize(b) { return b > 1048576 ? (b/1048576).toFixed(1)+' MB' : (b/1024).toFixed(0)+' KB'; },
+  // ── Utilities ─────────────────────────────────────────────────
+  escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  },
+  formatSize(b) {
+    return b > 1048576 ? (b / 1048576).toFixed(1) + ' MB' : (b / 1024).toFixed(0) + ' KB';
+  },
 };
---- END OF FILE public/api.js ---
