@@ -14,7 +14,8 @@
 
 <div class="topbar">
   <div class="topbar-left">
-    <img class="logo-light" src="https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/uteZNI.png" alt="Logo"/><img class="logo-dark" src="https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/6zYjti.png" alt="Logo"/>
+    <img class="logo-light" src="https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/uteZNI.png" alt="Logo"/>
+    <img class="logo-dark"  src="https://images.guns.lol/1014ab9fad8d9224ff7788b82f63b02ae6fbce5d/6zYjti.png" alt="Logo"/>
     <div class="topbar-sep"></div>
     <span class="role-badge management">Management</span>
   </div>
@@ -28,13 +29,14 @@
       <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       <svg class="icon-sun"  viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
     </button>
-    <button class="btn-logout" onclick="logout()">
+    <button class="btn-logout" onclick="promptLogout()">
       <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       Logout
     </button>
   </div>
 </div>
 
+<!-- Mobile nav -->
 <div class="mobile-nav" id="mobileNav">
   <div class="mobile-nav-item active" onclick="showTab('overview',this); syncMobileNav(this)">
     <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
@@ -55,6 +57,7 @@
 </div>
 
 <div class="layout">
+  <!-- Sidebar -->
   <div class="sidebar">
     <div class="nav-section">
       <div class="nav-label">Overview</div>
@@ -78,6 +81,7 @@
   </div>
 
   <div class="main">
+
     <!-- OVERVIEW TAB -->
     <div id="tab-overview">
       <div class="section-header">
@@ -121,8 +125,8 @@
       </div>
       <div class="card" style="margin-bottom:16px;">
         <div class="add-link-form">
-          <input class="inp" id="machineSearch" placeholder="Search machine or part..." oninput="filterMachines()" style="flex:2;"/>
-          <input class="inp" id="newMachineName" placeholder="New machine name..." style="flex:1;"/>
+          <input class="inp" id="machineSearch" placeholder="Search machine or part…" oninput="filterMachines()" style="flex:2;"/>
+          <input class="inp" id="newMachineName" placeholder="New machine name…" style="flex:1;"/>
           <button class="btn-add" onclick="addNewMachine()">+ Add Machine</button>
         </div>
       </div>
@@ -149,9 +153,19 @@
       </div>
       <div class="card" style="margin-bottom:16px;">
         <div class="card-header"><div class="card-title">Link from Google Drive or OneDrive</div></div>
+        <div class="link-help">
+          <div class="link-help-item">
+            <span class="link-badge gdrive">Google Drive</span>
+            Share the file → <em>Anyone with the link</em> → paste the share URL below.
+          </div>
+          <div class="link-help-item">
+            <span class="link-badge onedrive">OneDrive</span>
+            Share → <em>Embed</em> → copy the <code>src="…"</code> URL from the iframe snippet.
+          </div>
+        </div>
         <div class="add-link-form">
-          <input class="inp" id="linkName" placeholder="Document name&hellip;" style="flex:1.2;"/>
-          <input class="inp" id="linkUrl"  placeholder="Paste Google Drive share URL or OneDrive embed URL&hellip;" style="flex:3;"/>
+          <input class="inp" id="linkName" placeholder="Document name…" style="flex:1.2;"/>
+          <input class="inp" id="linkUrl"  placeholder="Paste Google Drive share URL or OneDrive embed URL…" style="flex:3;"/>
           <button class="btn-add" onclick="addLinkedDoc()">+ Add</button>
         </div>
         <div id="linkError" class="link-error" style="display:none;"></div>
@@ -175,17 +189,41 @@
         <div class="answer-list" id="all-responses" style="max-height:600px;"><div class="empty-hint">No responses yet</div></div>
       </div>
     </div>
+
   </div>
 </div>
 
-<!-- Custom Confirmation Modal -->
+<!-- ── Alert Modal ──────────────────────────────────────────── -->
+<div class="modal-overlay" id="alertModal">
+  <div class="modal" style="max-width:380px; height:auto; min-height:auto; padding:22px;">
+    <h3 style="margin-bottom:10px; font-size:1.1rem; color:var(--text);" id="alertModalTitle">Notice</h3>
+    <p style="font-size:0.88rem; color:var(--text-3); margin-bottom:20px; line-height:1.5;" id="alertModalText"></p>
+    <div style="display:flex; justify-content:flex-end;">
+      <button class="btn-sm" style="background:var(--accent); border:none; color:#fff; padding:8px 20px; font-size:0.85rem; border-radius:var(--radius); cursor:pointer;" onclick="closeAlertModal()">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Confirm Modal ────────────────────────────────────────── -->
 <div class="modal-overlay" id="confirmModal">
   <div class="modal" style="max-width:380px; height:auto; min-height:auto; padding:22px;">
-    <h3 style="margin-bottom:10px; font-size:1.15rem; color:var(--text);">Confirm Action</h3>
+    <h3 style="margin-bottom:10px; font-size:1.1rem; color:var(--text);" id="confirmModalTitle">Confirm Action</h3>
     <p style="font-size:0.88rem; color:var(--text-3); margin-bottom:24px; line-height:1.5;" id="confirmModalText">Are you sure?</p>
-    <div style="display:flex; justify-content:flex-end; gap:12px;">
-      <button class="btn-sm" style="background:var(--surface-3); border:1px solid var(--border); color:var(--text); padding:8px 16px; font-size:0.85rem;" onclick="closeConfirmModal()">Cancel</button>
+    <div style="display:flex; justify-content:flex-end; gap:10px;">
+      <button class="btn-sm" style="background:var(--surface-3); border:1px solid var(--border); color:var(--text); padding:8px 16px; font-size:0.85rem; border-radius:var(--radius); cursor:pointer;" onclick="closeConfirmModal()">Cancel</button>
       <button class="btn-sm btn-del" style="padding:8px 16px; font-size:0.85rem;" id="confirmModalAction">Yes, proceed</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Logout Confirm Modal ─────────────────────────────────── -->
+<div class="modal-overlay" id="logoutModal">
+  <div class="modal" style="max-width:360px; height:auto; min-height:auto; padding:22px;">
+    <h3 style="margin-bottom:10px; font-size:1.1rem; color:var(--text);">Log out?</h3>
+    <p style="font-size:0.88rem; color:var(--text-3); margin-bottom:24px; line-height:1.5;">Are you sure you want to log out of the Management dashboard?</p>
+    <div style="display:flex; justify-content:flex-end; gap:10px;">
+      <button class="btn-sm" style="background:var(--surface-3); border:1px solid var(--border); color:var(--text); padding:8px 16px; font-size:0.85rem; border-radius:var(--radius); cursor:pointer;" onclick="closeLogoutModal()">Cancel</button>
+      <button class="btn-sm btn-del" style="padding:8px 16px; font-size:0.85rem;" onclick="doLogout()">Log out</button>
     </div>
   </div>
 </div>
@@ -205,6 +243,7 @@
 </div>
 
 <script src="/api.js"></script>
+<script src="/js/questions.js"></script>
 <script src="/js/management.js"></script>
 <script>
   function syncMobileNav(clickedEl) {
