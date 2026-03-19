@@ -168,17 +168,24 @@ async function populateQuestionSelect() {
 async function refreshQuestionList() {
   const container = document.getElementById('questionList');
   if (!container) return;
+  const explLabels = { yes: 'Explain if Yes', no: 'Explain if No', both: 'Explain if Both', none: 'No explanation' };
+  const explColors = { yes: 'badge-no', no: 'badge-no', both: 'badge-no', none: 'badge-yes' };
   try {
     const questions = await API.getQuestions();
     container.innerHTML = questions.length
-      ? questions.map(q => `
+      ? questions.map(q => {
+          const expl = q.requireExplanation || 'no';
+          return `
           <div class="q-item" data-id="${q.id}">
             <span class="q-text">${escapeHtml(q.text)}</span>
+            <span class="q-btn-labels">${escapeHtml(q.yesLabel||'Igen')} / ${escapeHtml(q.noLabel||'Nem')}</span>
+            <span class="badge ${explColors[expl]}" style="font-size:0.64rem; padding:2px 7px;">${explLabels[expl]||'Explain if No'}</span>
             <span class="q-freq">${escapeHtml(q.freq)}</span>
             <button class="btn-icon del" onclick="deleteQuestionHandler('${q.id}')" title="Delete">
               <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
-          </div>`).join('')
+          </div>`;
+        }).join('')
       : '<div class="empty-hint">No questions yet.</div>';
   } catch { container.innerHTML = '<div class="empty-hint">Failed to load questions.</div>'; }
 }
@@ -187,12 +194,20 @@ async function refreshQuestionList() {
 window.addQuestionHandler = async function () {
   const textInput  = document.getElementById('newQText');
   const freqSelect = document.getElementById('newQFreq');
+  const yesInput   = document.getElementById('newQYesLabel');
+  const noInput    = document.getElementById('newQNoLabel');
+  const explSelect = document.getElementById('newQExplain');
   const text = textInput.value.trim();
   const freq = freqSelect.value;
   if (!text) { showAlert('Please enter a question.', 'Validation'); return; }
   try {
-    await API.addQuestion(text, freq);
-    textInput.value = '';
+    await API.addQuestion(
+      text, freq,
+      yesInput.value.trim() || 'Igen',
+      noInput.value.trim()  || 'Nem',
+      explSelect.value
+    );
+    textInput.value = ''; yesInput.value = ''; noInput.value = '';
     await refreshQuestionList();
     await populateQuestionSelect();
     await loadStats();
